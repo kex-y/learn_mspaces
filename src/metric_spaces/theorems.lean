@@ -94,7 +94,30 @@ is_continuous (g ∘ f) := λ a ε hε,
     let ⟨δ₂, hf₁, hf₂⟩ := h₁ a δ₁ hg₁ in
     ⟨δ₂, hf₁, λ x hx, hg₂ (f x) (hf₂ x hx)⟩
 
-theorem func_add_continuous (f g : X → ℝ) : is_continuous (f + g) := sorry
+/- The product of two metric spaces is also a metric space -/
+instance : metric_space (X × Y) :=
+{   dist := λ ⟨x₀, y₀⟩ ⟨x₁, y₁⟩, dist x₀ x₁ + dist y₀ y₁,
+    dist_self := λ ⟨x, y⟩, show dist x x + dist y y = 0, by simp,
+    eq_of_dist_eq_zero := -- Why can't I use λ ⟨x₀, y₀⟩ ⟨x₁, y₁⟩ here?
+        begin
+            rintros ⟨x₀, y₀⟩ ⟨x₁, y₁⟩,
+            show dist x₀ x₁ + dist y₀ y₁ = 0 → (x₀, y₀) = (x₁, y₁), intro h,
+            suffices : dist x₀ x₁ = 0 ∧ dist y₀ y₁ = 0,
+                rwa [eq_of_dist_eq_zero this.left, eq_of_dist_eq_zero this.right],
+            split,
+            all_goals {linarith [metric_nonneg x₀ x₁, metric_nonneg y₀ y₁, h]}
+        end,
+    dist_comm := λ ⟨x₀, y₀⟩ ⟨x₁, y₁⟩, 
+        show dist x₀ x₁ + dist y₀ y₁ = dist x₁ x₀ + dist y₁ y₀, by simp [dist_comm],
+    dist_triangle := λ ⟨x₀, y₀⟩ ⟨x₁, y₁⟩ ⟨x₂, y₂⟩,
+        show dist x₀ x₂ + dist y₀ y₂ ≤ dist x₀ x₁ + dist y₀ y₁ + (dist x₁ x₂ + dist y₁ y₂),
+        by linarith [dist_triangle x₀ x₁ x₂, dist_triangle y₀ y₁ y₂]
+}
+
+/- TODO: now that we have the product of two metric spaces is also a metric space,
+we can show that (+) : ℝ × ℝ → ℝ is a continuous function and this the composition of 
+this and two continous functions f, g is also continuous, i.e. f + g is continuous.
+-/
 
 end continuity
 end hidden
