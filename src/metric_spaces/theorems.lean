@@ -96,8 +96,8 @@ is_continuous (g ∘ f) := λ a ε hε,
     let ⟨δ₂, hf₁, hf₂⟩ := h₁ a δ₁ hg₁ in
     ⟨δ₂, hf₁, λ x hx, hg₂ (f x) (hf₂ x hx)⟩
 
-/- The product of two metric spaces is also a metric space -/
-@[priority 20000] instance : metric_space (X × Y) :=
+/- The product of two metric spaces is also a metric space (very buggy, hence setting the priority to 0) -/
+@[priority 0] instance : metric_space (X × Y) :=
 {   dist := λ ⟨x₀, y₀⟩ ⟨x₁, y₁⟩, dist x₀ x₁ + dist y₀ y₁,
     dist_self := λ ⟨x, y⟩, show dist x x + dist y y = 0, by simp,
     eq_of_dist_eq_zero :=
@@ -116,7 +116,9 @@ is_continuous (g ∘ f) := λ a ε hε,
         by linarith [dist_triangle x₀ x₁ x₂, dist_triangle y₀ y₁ y₂]
 }
 
-theorem prod_continuous (f g : X → ℝ) (h₁ : is_continuous f) (h₂ : is_continuous g) : 
+/- This is based on the metric λ ⟨x₀, y₀⟩ ⟨x₁, y₁⟩, dist x₀ x₁ + dist y₀ y₁
+/- Given two functions f g : X → ℝ, if both are continuous, then so is λ x : X, (f x, g x) -/
+theorem prod_continuous' (f g : X → ℝ) (h₁ : is_continuous f) (h₂ : is_continuous g) : 
 is_continuous (λ x : X, (f x, g x)) := λ x₀ ε hε,
     let ⟨δ₁, hδ₁, hf⟩ := h₁ x₀ (ε / 2) (half_pos hε) in
     let ⟨δ₂, hδ₂, hg⟩ := h₂ x₀ (ε / 2) (half_pos hε) in
@@ -130,11 +132,56 @@ begin
         from inf_le_left, from inf_le_right
 end
 ⟩
+-/
+
+variables {X' : Type*} [metric_space X']
+variables {Y' : Type*} [metric_space Y']
+
+/- A generalisation of the above using the metric λ x y : X × X' max (dist x.1 y.1) (dist x.2 y.2) -/
+theorem prod_continuous (f : X → Y) (g : X' → Y') (h₁ : is_continuous f) (h₂ : is_continuous g) : 
+is_continuous (λ x : X × X', (f x.1, g x.2)) := λ x₀ ε hε,
+    let ⟨δ₁, hδ₁, hf⟩ := h₁ x₀.1 ε hε in
+    let ⟨δ₂, hδ₂, hg⟩ := h₂ x₀.2 ε hε in
+    show ∃ δ > 0, ∀ (x : X × X'), dist x x₀ < δ → max (dist (f x.1) (f x₀.1)) (dist (g x.2) (g x₀.2)) < ε,
+    from ⟨min δ₁ δ₂, by simp; from ⟨hδ₁, hδ₂⟩, λ x hx,
+begin
+    suffices : dist (f x.1) (f x₀.1) < ε ∧ dist (g x.2) (g x₀.2) < ε,
+        simp [this.left, this.right],
+    split,
+        {apply hf x.1, simp at hx, apply lt_of_le_of_lt _ hx.left,
+        show dist x.1 x₀.1 ≤ max (dist x.1 x₀.1) (dist x.2 x₀.2),
+        rw le_max_iff, left, apply le_refl
+        },
+        {apply hg x.2, simp at hx, apply lt_of_le_of_lt _ hx.right,
+        show dist x.2 x₀.2 ≤ max (dist x.1 x₀.1) (dist x.2 x₀.2),
+        rw le_max_iff, right, apply le_refl
+        }
+end
+⟩
 
 /- TODO: now that we have the product of two metric spaces is also a metric space,
 we can show that (+) : ℝ × ℝ → ℝ is a continuous function and this the composition of 
 this and two continous functions f, g is also continuous, i.e. f + g is continuous.
+Similar process for f × g.
 -/
+
+/- Defining the diagonal map Δ : X → X × X as Δ(x) := (x, x) -/
+def diagonal_map (X : Type*) [metric_space X] : X → X × X := λ x : X, (x, x)
+
+/- The diagonal map is continuous -/
+lemma diagonal_map_is_continuous : is_continuous (diagonal_map X) := λ x₀ ε hε,
+    ⟨ε, hε, λ x hx, show max (dist x x₀) (dist x x₀) < ε, by simp [hx]⟩
+
+lemma comp_map_prod (f : X → Y) (g : X → Y') : (λ x : X, (f x, g x)) = (λ x : X × X, (f x.1, g x.2)) ∘ (diagonal_map X) :=
+by ext; all_goals {simp, refl}
+
+/- Using the diagonal map, we can show given continuous functions f g, x → (f x, g x) is continous-/
+theorem map_prod_continous (f : X → Y) (g : X → Y') (h₁ : is_continuous f) (h₂ : is_continuous g) :
+is_continuous (λ x : X, (f x, g x)) :=
+begin
+    rw comp_map_prod, refine comp_continuous diagonal_map_is_continuous _,
+    apply prod_continuous, repeat {assumption}
+end
 
 end continuity
 
