@@ -120,7 +120,7 @@ theorem prod_continuous (f g : X → ℝ) (h₁ : is_continuous f) (h₂ : is_co
 is_continuous (λ x : X, (f x, g x)) := λ x₀ ε hε,
     let ⟨δ₁, hδ₁, hf⟩ := h₁ x₀ (ε / 2) (half_pos hε) in
     let ⟨δ₂, hδ₂, hg⟩ := h₂ x₀ (ε / 2) (half_pos hε) in
-    show ∃ (δ : ℝ), 0 < δ ∧ ∀ (x : X), dist x x₀ < δ → dist (f x) (f x₀) + dist (g x) (g x₀) < ε,
+    show ∃ δ > 0, ∀ (x : X), dist x x₀ < δ → dist (f x) (f x₀) + dist (g x) (g x₀) < ε,
     from ⟨min δ₁ δ₂, by simp; from ⟨hδ₁, hδ₂⟩, λ x hx,
 begin
     suffices : dist (f x) (f x₀) < ε / 2 ∧ dist (g x) (g x₀) < ε / 2,
