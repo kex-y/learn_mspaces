@@ -52,7 +52,7 @@ instance category_metric_space : category (Metric_space) :=
     comp_id' := λ X Y f, by ext; simp [comp_id],
     assoc' := λ W X Y Z f g h, by simp
 }
-
+ 
 /- Definition of isometry on metric spaces -/
 def is_isometry (f : X.1 → Y.1) := ∀ x y : X.1, dist x y = dist (f x) (f y)
 
