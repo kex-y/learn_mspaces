@@ -172,7 +172,8 @@ def diagonal_map (X : Type*) [metric_space X] : X → X × X := λ x : X, (x, x)
 lemma diagonal_map_is_continuous : is_continuous (diagonal_map X) := λ x₀ ε hε,
     ⟨ε, hε, λ x hx, show max (dist x x₀) (dist x x₀) < ε, by simp [hx]⟩
 
-lemma comp_map_prod (f : X → Y) (g : X → Y') : (λ x : X, (f x, g x)) = (λ x : X × X, (f x.1, g x.2)) ∘ (diagonal_map X) :=
+lemma comp_map_prod (f : X → Y) (g : X → Y') : 
+(λ x : X, (f x, g x)) = (λ x : X × X, (f x.1, g x.2)) ∘ (diagonal_map X) :=
 by ext; all_goals {simp, refl}
 
 /- Using the diagonal map, we can show given continuous functions f g, x → (f x, g x) is continous-/
@@ -184,5 +185,61 @@ begin
 end
 
 end continuity
+
+namespace bounded
+
+/- If S is bounded then ∀ s₀ ∈ S, ∃ K : ℝ, ∀ s ∈ S, dist s₀ s ≤ K -/
+lemma bounded_all {S : set X} (h₀ : is_bounded S) : 
+∀ s₀ ∈ S, ∃ K : ℝ, ∀ s ∈ S, dist s₀ s ≤ K := λ s₀ hs₀,
+or.elim h₀ 
+    (λ h₀, by simp [h₀, hs₀]) 
+    (λ h₀, let ⟨x₀, hx₀, K, hK⟩ := h₀ in
+    ⟨K + K, λ s hs,
+        by linarith [dist_triangle s₀ x₀ s, hK s₀ hs₀, 
+        (show dist x₀ s ≤ K, by rw dist_comm; from hK s hs)]⟩
+    )
+
+/- Reverse of the above -/
+lemma all_bounded {S : set X} (h₀ : ∀ s₀ ∈ S, ∃ K : ℝ, ∀ s ∈ S, dist s₀ s ≤ K) : 
+is_bounded S := 
+or.elim (set.eq_empty_or_nonempty S)
+    (λ hs, or.inl $ hs)
+    (λ hs, or.inr $ let ⟨s', hs'⟩ := hs in
+    ⟨s', hs', let ⟨K, hK⟩ := h₀ s' hs' in ⟨K, by simp [dist_comm]; from hK⟩⟩
+    )
+
+/- If S is bounded if and only if ∀ s₀ ∈ S, ∃ K : ℝ, ∀ s ∈ S, dist s₀ s ≤ K -/
+theorem bounded_iff_all {S : set X} : 
+is_bounded S ↔ ∀ s₀ ∈ S, ∃ K : ℝ, ∀ s ∈ S, dist s₀ s ≤ K :=
+iff.intro (λ h, bounded_all h) (λ h, all_bounded h)
+
+
+/- The union of two bounded subsets is also bounded -/
+lemma bounded_union_two (S T : set X) (hs : is_bounded S) (ht : is_bounded T) :
+is_bounded $ S ∪ T := 
+or.elim hs (λ hs, by simp [hs, ht]) (λ ⟨x₀, hx₀, K₀, hK₀⟩,
+    or.elim ht (λ ht, by simp [hs, ht]) (λ ⟨x₁, hx₁, K₁, hK₁⟩, or.inr 
+        ⟨x₀, by simp [hx₀], ⟨max K₀ (K₁ + dist x₀ x₁), λ x hx,
+            begin
+                cases hx, simp [hK₀, hx],
+                rw [le_max_iff], right,  conv_rhs {rw dist_comm},
+                apply le_trans (dist_triangle x x₁ x₀), simp [hK₁ x hx]
+            end ⟩⟩
+        )
+    )
+
+/- The union of finitely many bounded subsets is also bounded -/
+theorem bounded_union (S : ℕ → set X) (h₀ : ∀ n : ℕ, is_bounded $ S n) :
+∀ n : ℕ, is_bounded $ finset.sup (finset.range n) S
+| 0 := by left; simp; refl
+| (n + 1) := by simpa [finset.range_succ] using bounded_union_two _ _ (h₀ _) (bounded_union n)
+
+/- TODO : Change the above to something like
+theorem bounded_union {s : set β} (f : β → set X) {hs : finite s} 
+    (h₀ : ∀ i ∈ s, is_bounded $ f i) :
+    is_bounded $ ⋃ i ∈ s, f i :=  
+-/
+
+end bounded
 
 end hidden
