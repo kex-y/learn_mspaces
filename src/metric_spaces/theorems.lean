@@ -72,6 +72,8 @@ instance metric_space_example_discrete : metric_space X :=
 
 end examples
 
+open definitions
+
 variables {X : Type*} [metric_space X]
 
 /- The metric of any two elements of a metric space is non-negative -/
@@ -241,5 +243,19 @@ theorem bounded_union {s : set β} (f : β → set X) {hs : finite s}
 -/
 
 end bounded
+
+namespace open_closed_sets
+
+/- Given an open ball, there exists a subset thats an open ball centered anywhere within the ball-/
+theorem subset_open_ball (x₀ : X) (r : ℝ) : 
+∀ y ∈ open_ball x₀ r, ∃ r' : ℝ, open_ball y r' ⊆ open_ball x₀ r := λ y hy,
+    ⟨r - dist x₀ y, λ x hx,
+        by apply lt_of_le_of_lt (dist_triangle x₀ y x); rw [set.mem_set_of_eq] at hx; linarith [hx]
+    ⟩
+
+/- An open ball is open -/
+theorem open_ball_is_open (x₀ : X) (r : ℝ) : is_open' $ open_ball x₀ r := subset_open_ball x₀ r
+
+end open_closed_sets
 
 end hidden
