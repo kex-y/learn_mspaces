@@ -19,7 +19,7 @@ def is_bounded (S : set X) := S = ∅ ∨ ∃ x₀ ∈ S, ∃ k : ℝ, ∀ x ∈
 def open_ball (x₀ : X) (r : ℝ) := {x : X | dist x₀ x < r}
 
 /- Definition of being open -/
-def is_open' (S : set X) := ∀ s ∈ S, ∃ ε : ℝ, open_ball s ε ⊆ S
+def is_open' (S : set X) := ∀ s ∈ S, ∃ (ε : ℝ) (hε : 0 < ε), open_ball s ε ⊆ S
 
 attribute [reducible] is_continuous is_continuous_at is_bounded open_ball is_open'
 
