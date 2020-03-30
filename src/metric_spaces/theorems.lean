@@ -246,15 +246,62 @@ end bounded
 
 namespace open_closed_sets
 
-/- Given an open ball, there exists a subset thats an open ball centered anywhere within the ball-/
+/- Given an open ball, there exists an open ball (with positive radius) centered anywhere within the ball-/
 theorem subset_open_ball (x₀ : X) (r : ℝ) : 
-∀ y ∈ open_ball x₀ r, ∃ r' : ℝ, open_ball y r' ⊆ open_ball x₀ r := λ y hy,
-    ⟨r - dist x₀ y, λ x hx,
+∀ y ∈ open_ball x₀ r, ∃ r' > 0, open_ball y r' ⊆ open_ball x₀ r := λ y hy,
+    ⟨r - dist x₀ y, by rw set.mem_set_of_eq at hy; linarith [hy], λ x hx,
         by apply lt_of_le_of_lt (dist_triangle x₀ y x); rw [set.mem_set_of_eq] at hx; linarith [hx]
     ⟩
 
 /- An open ball is open -/
-theorem open_ball_is_open (x₀ : X) (r : ℝ) : is_open' $ open_ball x₀ r := subset_open_ball x₀ r
+theorem open_ball_is_open (x₀ : X) (r : ℝ) (h : 0 < r) : is_open' $ open_ball x₀ r := subset_open_ball x₀ r
+
+/- An open ball has non-positive radius then its empty -/
+lemma nonpos_empty {x₀ : X} {r : ℝ} (h₁ : r ≤ 0) : 
+open_ball x₀ r = ∅ :=
+begin
+    ext, split, 
+        {intro hx, rw set.mem_set_of_eq at hx,
+        exfalso, apply (not_le.mpr hx), apply le_trans h₁, 
+        from metric_nonneg x₀ x,
+        },
+        intro hx, exfalso, from hx
+end
+
+/- An open ball either has positive radius or its empty -/
+lemma pos_or_empty (x₀ : X) (r : ℝ) : open_ball x₀ r = ∅ ∨ 0 < r :=
+by apply classical.or_iff_not_imp_right.mpr; from λ h, nonpos_empty $ not_lt.mp h
+
+/- An empty set is open -/
+theorem empty_is_open : is_open' (∅ : set X) := λ s hs, by exfalso; from hs
+
+variables {Y : Type*} [metric_space Y]
+variables {f : X → Y}
+
+/- f : X → Y is continuous iff f⁻¹ U is open in X whenever U is open -/
+lemma contin_to_preimg_open (U : set Y) (h₀ : is_open' U) (h₁ : is_continuous f) : 
+is_open' $ set.preimage f U := λ x hx,
+    let ⟨ε, hε₁, hε₂⟩ := h₀ (f x) hx in
+    let ⟨δ, hδ₁, hδ₂⟩ := h₁ x ε hε₁ in
+    ⟨δ, hδ₁, λ x' hx', 
+        by apply hε₂; rw [set.mem_set_of_eq, dist_comm]; apply hδ₂ x'; rw dist_comm; assumption⟩
+
+lemma preimg_open_to_contin : 
+(∀ (U : set Y) (h₀ : is_open' U), is_open' $ set.preimage f U) → is_continuous f := λ h x ε hε,
+    let U := open_ball (f x) ε in have hinU : f x ∈ U := by simp; from hε,
+    let ⟨δ, hδ₀, hδ₁⟩ := h U (open_ball_is_open (f x) ε hε) x hinU in
+    ⟨δ, hδ₀, λ y hy,
+    begin
+        suffices : y ∈ f⁻¹' U, simp at this, rw dist_comm, assumption,
+        apply hδ₁, rw [set.mem_set_of_eq, dist_comm], assumption 
+    end
+    ⟩
+
+theorem contin_iff_preimg_open :
+(∀ (U : set Y) (h₀ : is_open' U), is_open' $ set.preimage f U) ↔ is_continuous f :=
+iff.intro
+    (preimg_open_to_contin)
+    (λ hcontin U hopen, contin_to_preimg_open U hopen hcontin)
 
 end open_closed_sets
 
