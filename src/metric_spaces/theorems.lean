@@ -233,7 +233,7 @@ or.elim hs (λ hs, by simp [hs, ht]) (λ ⟨x₀, hx₀, K₀, hK₀⟩,
 /- The union of finitely many bounded subsets is also bounded -/
 theorem bounded_union (S : ℕ → set X) (h₀ : ∀ n : ℕ, is_bounded $ S n) :
 ∀ n : ℕ, is_bounded $ finset.sup (finset.range n) S
-| 0 := by left; simp; refl
+| 0       := by left; simp; refl
 | (n + 1) := by simpa [finset.range_succ] using bounded_union_two _ _ (h₀ _) (bounded_union n)
 
 /- TODO : Change the above to something like
@@ -291,10 +291,10 @@ lemma preimg_open_to_contin :
     let U := open_ball (f x) ε in have hinU : f x ∈ U := by simp; from hε,
     let ⟨δ, hδ₀, hδ₁⟩ := h U (open_ball_is_open (f x) ε hε) x hinU in
     ⟨δ, hδ₀, λ y hy,
-    begin
-        suffices : y ∈ f⁻¹' U, simp at this, rw dist_comm, assumption,
-        apply hδ₁, rw [set.mem_set_of_eq, dist_comm], assumption 
-    end
+        begin
+            suffices : y ∈ f⁻¹' U, simp at this, rw dist_comm, assumption,
+            apply hδ₁, rw [set.mem_set_of_eq, dist_comm], assumption 
+        end
     ⟩
 
 theorem contin_iff_preimg_open :
@@ -302,6 +302,55 @@ theorem contin_iff_preimg_open :
 iff.intro
     (preimg_open_to_contin)
     (λ hcontin U hopen, contin_to_preimg_open U hopen hcontin)
+
+/- The intersect of finitely many open sets is open -/
+lemma inter_open_is_open (U₀ U₁ : set X) 
+(h₀ : is_open' U₀) (h₁ : is_open' U₁) : is_open' (U₀ ∩ U₁) := λ s ⟨hs₀, hs₁⟩,
+    let ⟨ε₀, hε₀, hε₀'⟩ := h₀ s hs₀ in
+    let ⟨ε₁, hε₁, hε₁'⟩ := h₁ s hs₁ in
+    let ε := min ε₀ ε₁ in
+    ⟨ε, by simp [hε₀, hε₁],
+        begin
+            rw set.subset_inter_iff, split,
+                {refine set.subset.trans _ hε₀',
+                simp, intros _ h _, assumption
+                },
+                refine set.subset.trans _ hε₁', simp
+        end
+    ⟩
+
+lemma inter_finite_open_is_open (I : set ℕ) (U : ℕ → set X) {hI : set.finite I}
+: ( ∀ i ∈ I, is_open' $ U i) → (is_open' $ ⋂ i ∈ I, U i) :=
+set.finite.induction_on hI (λ x, by simp; from (λ s _, 
+    ⟨1, ⟨by norm_num, set.subset_univ (open_ball s 1)⟩⟩)) $ λ i S hi hS hopen hopen',
+    begin
+        rw set.bInter_insert,
+        apply inter_open_is_open,
+            {apply hopen', from set.mem_insert i S},
+            apply hopen, intros j hj,
+            apply hopen', from set.mem_union_right (λ (a : ℕ), a = i) hj,
+    end
+
+/- The union of open sets is open-/
+lemma union_open_is_open (U₀ U₁ : set X)
+(h₀ : is_open' U₀) (h₁ : is_open' U₁) : is_open' (U₀ ∪ U₁) := λ s hs,
+or.elim hs
+    (λ hs', let ⟨ε, hε, hε'⟩ := h₀ s hs' in
+        ⟨ε, hε, set.subset.trans hε' (set.subset_union_left U₀ U₁)⟩)
+    (λ hs', let ⟨ε, hε, hε'⟩ := h₁ s hs' in
+        ⟨ε, hε, set.subset.trans hε' (set.subset_union_right U₀ U₁)⟩)
+
+theorem Union_open_is_open (I : set Type*) (U : Type* → set X)
+(h₀ : ∀ i ∈ I, is_open' $ U i) : is_open' $ ⋃ i ∈ I, U i := λ x hx,
+    let ⟨i, hi, hi'⟩ := set.mem_bUnion_iff.mp hx in
+    let ⟨ε, hε, hε'⟩ := h₀ i hi x hi' in
+    ⟨ε, hε,
+    begin
+        refine set.subset.trans hε' _,
+        intros y hy, rw set.mem_bUnion_iff,
+        from ⟨i, hi, hy⟩
+    end
+    ⟩
 
 end open_closed_sets
 
