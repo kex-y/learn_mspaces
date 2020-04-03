@@ -319,8 +319,8 @@ lemma inter_open_is_open (U₀ U₁ : set X)
         end
     ⟩
 
-lemma inter_finite_open_is_open (I : set ℕ) (U : ℕ → set X) {hI : set.finite I}
-: ( ∀ i ∈ I, is_open' $ U i) → (is_open' $ ⋂ i ∈ I, U i) :=
+lemma inter_finite_open_is_open {I : set ℕ} {U : ℕ → set X} (hI : set.finite I) :
+(∀ i ∈ I, is_open' $ U i) → (is_open' $ ⋂ i ∈ I, U i) :=
 set.finite.induction_on hI (λ x, by simp; from (λ s _, 
     ⟨1, ⟨by norm_num, set.subset_univ (open_ball s 1)⟩⟩)) $ λ i S hi hS hopen hopen',
     begin
@@ -351,6 +351,22 @@ theorem Union_open_is_open (I : set Type*) (U : Type* → set X)
         from ⟨i, hi, hy⟩
     end
     ⟩
+
+/- The union of finitely many closed sets is open -/
+theorem union_finite_closed_is_open (I : set ℕ) (U : ℕ → set X) {hI : set.finite I}
+(h : ∀ i ∈ I, is_closed' $ U i) : (is_closed' $ ⋃ i ∈ I, U i) := 
+begin
+    unfold is_closed' at *,
+    rw set.compl_bUnion, from inter_finite_open_is_open hI h,
+end
+
+/- The intersect of closed sets is closed-/
+theorem Inter_closed_is_closed (I : set Type*) (U : Type* → set X)
+(h : ∀ i ∈ I, is_closed' $ U i) : is_closed' $ ⋂ i ∈ I, U i :=
+begin
+    unfold is_closed' at *,
+    rw set.compl_bInter, apply Union_open_is_open, from h
+end
 
 end open_closed_sets
 
