@@ -21,6 +21,9 @@ def open_ball (x₀ : X) (r : ℝ) := {x : X | dist x₀ x < r}
 /- Definition of being open -/
 def is_open' (S : set X) := ∀ s ∈ S, ∃ (ε : ℝ) (hε : 0 < ε), open_ball s ε ⊆ S
 
-attribute [reducible] is_continuous is_continuous_at is_bounded open_ball is_open'
+/- Definition of being closed -/
+def is_closed' (S : set X) := is_open' $ -S
+
+attribute [reducible] is_continuous is_continuous_at is_bounded open_ball is_open' is_closed'
 
 end definitions
