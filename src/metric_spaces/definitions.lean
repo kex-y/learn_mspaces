@@ -6,15 +6,17 @@ variables {Y : Type*} [metric_space Y]
 namespace definitions
 
 /- Definition of continuity on metric spaces -/
-def is_continuous_at (f : X → Y) (a : X) := ∀ ε > 0, ∃ δ > 0, ∀ x : X, dist x a < δ → dist (f x) (f a) < ε
+def is_continuous_at (f : X → Y) (a : X) := 
+    ∀ ε > 0, ∃ δ > 0, ∀ x : X, dist x a < δ → dist (f x) (f a) < ε
 def is_continuous (f : X → Y) := ∀ a : X, is_continuous_at f a
 
 /- Definition of uniform continuity on metric spaces -/
-def is_unif_continuous (f : X → Y) := ∀ ε > 0, ∃ δ > 0, ∀ x y : X, dist x y < δ → dist (f x) (f y) < ε
+def is_unif_continuous (f : X → Y) := 
+    ∀ ε > 0, ∃ δ > 0, ∀ x y : X, dist x y < δ → dist (f x) (f y) < ε
 
 /- Notion of boundedness on metric spaces -/
 def is_bounded (S : set X) := S = ∅ ∨ ∃ x₀ ∈ S, ∃ k : ℝ, ∀ x ∈ S, dist x x₀ ≤ k
-
+    
 /- Definition of an open ball -/
 def open_ball (x₀ : X) (r : ℝ) := {x : X | dist x₀ x < r}
 
@@ -24,6 +26,14 @@ def is_open' (S : set X) := ∀ s ∈ S, ∃ (ε : ℝ) (hε : 0 < ε), open_bal
 /- Definition of being closed -/
 def is_closed' (S : set X) := is_open' $ -S
 
-attribute [reducible] is_continuous is_continuous_at is_bounded open_ball is_open' is_closed'
+/- Definition of the set of limit points -/
+def limit_points (S : set X) := 
+    {x : X | ∀ (ε : ℝ) (hε : 0 < ε), ∃ (y ∈ S) (x ≠ y), y ∈ open_ball x ε}
+
+/- Definition of closure -/
+def closure' (S : set X) := ⋂ (T : set X) (h₀ : S ⊆ T) (h₁ : is_closed' T), T
+
+attribute [reducible] is_continuous is_continuous_at is_bounded open_ball is_open' is_closed' 
+limit_points
 
 end definitions
