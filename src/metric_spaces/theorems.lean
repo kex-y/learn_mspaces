@@ -9,9 +9,6 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 [... Some stuff that doesn't matter ...]
 -/
 
--- Some of the theorems are already in mathlib so we will work in hidden
-namespace hidden
-
 noncomputable theory
 
 namespace examples
@@ -74,6 +71,7 @@ end examples
 
 open definitions
 
+variables {α : Type*}
 variables {X : Type*} [metric_space X]
 
 /- The metric of any two elements of a metric space is non-negative -/
@@ -304,7 +302,7 @@ iff.intro
     (λ hcontin U hopen, contin_to_preimg_open U hopen hcontin)
 
 /- The intersect of finitely many open sets is open -/
-lemma inter_open_is_open (U₀ U₁ : set X) 
+lemma inter_open_is_open  {U₀ U₁ : set X}
 (h₀ : is_open' U₀) (h₁ : is_open' U₁) : is_open' (U₀ ∩ U₁) := λ s ⟨hs₀, hs₁⟩,
     let ⟨ε₀, hε₀, hε₀'⟩ := h₀ s hs₀ in
     let ⟨ε₁, hε₁, hε₁'⟩ := h₁ s hs₁ in
@@ -319,7 +317,7 @@ lemma inter_open_is_open (U₀ U₁ : set X)
         end
     ⟩
 
-lemma inter_finite_open_is_open {I : set ℕ} {U : ℕ → set X} (hI : set.finite I) :
+lemma inter_finite_open_is_open {I : set α} {U : α → set X} (hI : set.finite I) :
 (∀ i ∈ I, is_open' $ U i) → (is_open' $ ⋂ i ∈ I, U i) :=
 set.finite.induction_on hI (λ x, by simp; from (λ s _, 
     ⟨1, ⟨by norm_num, set.subset_univ (open_ball s 1)⟩⟩)) $ λ i S hi hS hopen hopen',
@@ -328,11 +326,11 @@ set.finite.induction_on hI (λ x, by simp; from (λ s _,
         apply inter_open_is_open,
             {apply hopen', from set.mem_insert i S},
             apply hopen, intros j hj,
-            apply hopen', from set.mem_union_right (λ (a : ℕ), a = i) hj,
+            apply hopen', apply set.mem_union_right, assumption
     end
 
 /- The union of open sets is open-/
-lemma union_open_is_open (U₀ U₁ : set X)
+lemma union_open_is_open {U₀ U₁ : set X}
 (h₀ : is_open' U₀) (h₁ : is_open' U₁) : is_open' (U₀ ∪ U₁) := λ s hs,
 or.elim hs
     (λ hs', let ⟨ε, hε, hε'⟩ := h₀ s hs' in
@@ -340,20 +338,20 @@ or.elim hs
     (λ hs', let ⟨ε, hε, hε'⟩ := h₁ s hs' in
         ⟨ε, hε, set.subset.trans hε' (set.subset_union_right U₀ U₁)⟩)
 
-theorem Union_open_is_open (I : set Type*) (U : Type* → set X)
-(h₀ : ∀ i ∈ I, is_open' $ U i) : is_open' $ ⋃ i ∈ I, U i := λ x hx,
-    let ⟨i, hi, hi'⟩ := set.mem_bUnion_iff.mp hx in
-    let ⟨ε, hε, hε'⟩ := h₀ i hi x hi' in
+theorem Union_open_is_open {α} {U : α → set X}
+(h : ∀ i, is_open' $ U i) : is_open' $ ⋃ i, U i := λ x hx,
+    let ⟨i, hi⟩ := set.mem_Union.mp hx in
+    let ⟨ε, hε, hε'⟩ := h i x hi in
     ⟨ε, hε,
     begin
         refine set.subset.trans hε' _,
-        intros y hy, rw set.mem_bUnion_iff,
-        from ⟨i, hi, hy⟩
+        intros y hy, rw set.mem_Union,
+        from ⟨i, hy⟩
     end
     ⟩
 
 /- The union of finitely many closed sets is open -/
-theorem union_finite_closed_is_open (I : set ℕ) (U : ℕ → set X) {hI : set.finite I}
+theorem union_finite_closed_is_open {I : set α} {U : α → set X} (hI : set.finite I)
 (h : ∀ i ∈ I, is_closed' $ U i) : (is_closed' $ ⋃ i ∈ I, U i) := 
 begin
     unfold is_closed' at *,
@@ -361,13 +359,27 @@ begin
 end
 
 /- The intersect of closed sets is closed-/
-theorem Inter_closed_is_closed (I : set Type*) (U : Type* → set X)
-(h : ∀ i ∈ I, is_closed' $ U i) : is_closed' $ ⋂ i ∈ I, U i :=
+theorem Inter_closed_is_closed {α} {U : α → set X}
+  (h : ∀ i, is_closed' $ U i) : is_closed' $ ⋂ i, U i := 
 begin
     unfold is_closed' at *,
-    rw set.compl_bInter, apply Union_open_is_open, from h
+    rw set.compl_Inter, from Union_open_is_open h
 end
 
-end open_closed_sets
+/- The closure of a closed set is itself -/
+theorem closure_self {S : set X} (h : is_closed' S) : (closure' S) = S :=
+begin
+    ext, unfold closure', simp, split,
+        {intro hx, apply hx, all_goals {finish}},
+        intros hx T hT₀ hT₁, apply hT₀, assumption
+end
 
-end hidden
+/- The closure of a set S is S ∪ {limit points of S} -/
+theorem with_limit_points_is_closure (S : set X) : 
+closure' S = S ∪ limit_points S := sorry
+
+/- If S ⊆ T, the the limit points of S ⊆ limit points of T -/
+theorem limit_points_le {S T : set X} (h : S ⊆ T) : 
+limit_points S ⊆ limit_points T := sorry
+
+end open_closed_sets
