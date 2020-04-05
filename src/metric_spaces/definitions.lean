@@ -28,12 +28,11 @@ def is_closed' (S : set X) := is_open' $ -S
 
 /- Definition of the set of limit points -/
 def limit_points (S : set X) := 
-    {x : X | ∀ (ε : ℝ) (hε : 0 < ε), ∃ (y ∈ S) (x ≠ y), y ∈ open_ball x ε}
+    {x : X | ∀ (ε : ℝ) (hε : 0 < ε), ∃ (y ∈ S) (h : x ≠ y), y ∈ open_ball x ε}
 
 /- Definition of closure -/
 def closure' (S : set X) := ⋂ (T : set X) (h₀ : S ⊆ T) (h₁ : is_closed' T), T
 
-attribute [reducible] is_continuous is_continuous_at is_bounded open_ball is_open' is_closed' 
-limit_points
+attribute [reducible] open_ball limit_points closure'
 
 end definitions
