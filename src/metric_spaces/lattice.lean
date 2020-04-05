@@ -5,36 +5,16 @@ variables {Y : Type*} [metric_space Y]
 
 open definitions
 
+namespace closed_set
+
 /- Defining the structure of a closed set -/
 structure closed_set (X : Type*) [metric_space X] :=
 (carrier : set X)
 (is_closed : is_closed' carrier) 
 
 instance : has_coe (closed_set X) (set X) := ⟨closed_set.carrier⟩
-instance : has_le (closed_set X) := ⟨λ α β, (α : set X) ⊆ (β : set X)⟩
-instance : has_lt (closed_set X) := ⟨λ α β, (α : set X) ⊂ (β : set X)⟩
 
 open open_closed_sets
-
-/- The union and intersect of two closed sets are closed -/
-theorem inter_closed_is_closed {U₀ U₁ : set X}
-(h₀ : is_closed' U₀) (h₁ : is_closed' U₁) : is_closed' (U₀ ∩ U₁) := 
-by unfold is_closed'; rw set.compl_inter; from union_open_is_open h₀ h₁
-
-theorem union_closed_is_closed {U₀ U₁ : set X}
-(h₀ : is_closed' U₀) (h₁ : is_closed' U₁) : is_closed' (U₀ ∪ U₁) := 
-by unfold is_closed'; rw set.compl_union; apply inter_open_is_open h₀ h₁
-
-def sup (U₀ U₁ : closed_set X) : closed_set X := 
-{ carrier := (U₀ : set X) ∪ (U₁ : set X),
-  is_closed := union_closed_is_closed U₀.2 U₁.2 }
-
-def inf (U₀ U₁ : closed_set X) : closed_set X := 
-{ carrier := (U₀ : set X) ∩ (U₁ : set X),
-  is_closed := inter_closed_is_closed U₀.2 U₁.2 }
-
-instance : has_sup (closed_set X) := ⟨sup⟩
-instance : has_inf (closed_set X) := ⟨inf⟩
 
 /- The closure of a set is also closed -/
 lemma closure_closed (S : set X) : is_closed' $ closure' S :=
@@ -42,7 +22,8 @@ Inter_closed_is_closed $ λ T, Inter_closed_is_closed $ λ h₁,
 Inter_closed_is_closed $ λ h₂, h₂
 
 /- The closure of a closure is itself -/
-theorem closure_closure' (S : set X) : closure' (closure' S) = closure' S := closure_self $ closure_closed S
+theorem closure_closure' (S : set X) : closure' (closure' S) = closure' S := 
+closure_self $ closure_closed S
 
 /- The closure of a smaller set is smaller than closure -/
 theorem closure_mono' {S T : set X} (h : S ⊆ T) : closure' S ⊆ closure' T :=
@@ -55,22 +36,38 @@ begin
     from limit_points_le h
 end
 
-def Closure (S : closed_set X) : closed_set X := 
+theorem monotone_closure' : monotone $ @closure' X _ := λ _ _, closure_mono'
+
+/- A set is smaller than its closure -/
+theorem subset_closure' (S : set X) : S ⊆ closure' S :=
+set.subset_Inter $ λ _, set.subset_Inter $ λ h, set.subset_Inter $ λ _, h
+
+def Closure (S : set X) : closed_set X := 
 { carrier := closure' S,
   is_closed := closure_closed S }
 
-instance : lattice (closed_set X) := 
-{ sup := sup,
-  le := (≤),
-  lt := (<),
-  le_refl := by finish,
-  le_trans := λ _ _ _ h₀ h₁, set.subset.trans h₀ h₁,
-  lt_iff_le_not_le := sorry,
-  le_antisymm := sorry,
-  le_sup_left := sorry,
-  le_sup_right := sorry,
-  sup_le := sorry,
-  inf := sorry,
-  inf_le_left := sorry,
-  inf_le_right := sorry,
-  le_inf := sorry }
+theorem ext' {S T : closed_set X} (h : (S : set X) = T) : S = T :=
+by cases S; cases T; congr'
+
+open set
+
+instance : partial_order (closed_set X) :=
+{.. partial_order.lift (coe : closed_set X → set X) (λ a b, ext') (by apply_instance)}
+
+/- The closure of a closed_set is itself -/
+lemma Closure_self (T : closed_set X) : T = Closure T.1 :=
+ext' $ show ↑T = closure' T.carrier, by {rw closure_self, refl, from T.2}
+
+/- Closed sets form a Galois insertion -/
+def gi : @galois_insertion (set X) (closed_set X) _ _ Closure closed_set.carrier := 
+{ choice := λ S h, Closure S,
+  gc := λ S T, 
+    ⟨λ h, set.subset.trans (subset_closure' S) h, λ h, by rw Closure_self T; from closure_mono' h⟩,
+  le_l_u := λ S, subset_closure' S,
+  choice_eq := λ _ _, rfl }
+
+/- Closed sets form a complete lattice -/
+instance : complete_lattice (closed_set X) := 
+{ .. galois_insertion.lift_complete_lattice gi}
+
+end closed_set
