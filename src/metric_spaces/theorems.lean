@@ -375,6 +375,14 @@ begin
 end
 
 /- The closure of a set S is S ∪ {limit points of S} -/
+lemma with_limit_points_is_closed (S : set X) : 
+    is_closed' $ S ∪ limit_points S := λ x hx, classical.by_contradiction $
+begin
+    push_neg, intro h, sorry
+end
+
+lemma with_limit_points_is_inf (S V : set X) (h : S ⊆ V) : limit_points S ⊆ V := sorry
+
 theorem with_limit_points_is_closure (S : set X) : 
 closure' S = S ∪ limit_points S := sorry
 
