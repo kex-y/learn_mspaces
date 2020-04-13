@@ -11,6 +11,8 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 
 noncomputable theory
 
+open set
+
 namespace examples
 
 -- Declaring X and element x with type X
@@ -38,7 +40,7 @@ instance metric_space_example_R : metric_space ℝ :=
 }
 
 -- The discrete metric is a metric on any set X
-open tactic 
+open tactic
 open_locale classical
 
 definition metric_example (X : Type) (x y : X) : ℝ :=
@@ -202,7 +204,7 @@ or.elim h₀
 /- Reverse of the above -/
 lemma all_bounded {S : set X} (h₀ : ∀ s₀ ∈ S, ∃ K : ℝ, ∀ s ∈ S, dist s₀ s ≤ K) : 
 is_bounded S := 
-or.elim (set.eq_empty_or_nonempty S)
+or.elim (eq_empty_or_nonempty S)
 	(λ hs, or.inl $ hs)
 	(λ hs, or.inr $ let ⟨s', hs'⟩ := hs in
 	⟨s', hs', let ⟨K, hK⟩ := h₀ s' hs' in ⟨K, by simp [dist_comm]; from hK⟩⟩
@@ -247,8 +249,8 @@ namespace open_closed_sets
 /- Given an open ball, there exists an open ball (with positive radius) centered anywhere within the ball-/
 theorem subset_open_ball (x₀ : X) (r : ℝ) : 
 ∀ y ∈ open_ball x₀ r, ∃ r' > 0, open_ball y r' ⊆ open_ball x₀ r := λ y hy,
-	⟨r - dist x₀ y, by rw set.mem_set_of_eq at hy; linarith [hy], λ x hx,
-		by apply lt_of_le_of_lt (dist_triangle x₀ y x); rw [set.mem_set_of_eq] at hx; linarith [hx]
+	⟨r - dist x₀ y, by rw mem_set_of_eq at hy; linarith [hy], λ x hx,
+		by apply lt_of_le_of_lt (dist_triangle x₀ y x); rw [mem_set_of_eq] at hx; linarith [hx]
 	⟩
 
 /- An open ball is open -/
@@ -259,7 +261,7 @@ lemma nonpos_empty {x₀ : X} {r : ℝ} (h₁ : r ≤ 0) :
 open_ball x₀ r = ∅ :=
 begin
 	ext, split, 
-		{intro hx, rw set.mem_set_of_eq at hx,
+		{intro hx, rw mem_set_of_eq at hx,
 		exfalso, apply (not_le.mpr hx), apply le_trans h₁, 
 		from metric_nonneg x₀ x,
 		},
@@ -278,25 +280,25 @@ variables {f : X → Y}
 
 /- f : X → Y is continuous iff f⁻¹ U is open in X whenever U is open -/
 lemma contin_to_preimg_open (U : set Y) (h₀ : is_open' U) (h₁ : is_continuous f) : 
-is_open' $ set.preimage f U := λ x hx,
+is_open' $ preimage f U := λ x hx,
 	let ⟨ε, hε₁, hε₂⟩ := h₀ (f x) hx in
 	let ⟨δ, hδ₁, hδ₂⟩ := h₁ x ε hε₁ in
 	⟨δ, hδ₁, λ x' hx', 
-		by apply hε₂; rw [set.mem_set_of_eq, dist_comm]; apply hδ₂ x'; rw dist_comm; assumption⟩
+		by apply hε₂; rw [mem_set_of_eq, dist_comm]; apply hδ₂ x'; rw dist_comm; assumption⟩
 
 lemma preimg_open_to_contin : 
-(∀ (U : set Y) (h₀ : is_open' U), is_open' $ set.preimage f U) → is_continuous f := λ h x ε hε,
+(∀ (U : set Y) (h₀ : is_open' U), is_open' $ preimage f U) → is_continuous f := λ h x ε hε,
 	let U := open_ball (f x) ε in have hinU : f x ∈ U := by simp; from hε,
 	let ⟨δ, hδ₀, hδ₁⟩ := h U (open_ball_is_open (f x) ε hε) x hinU in
 	⟨δ, hδ₀, λ y hy,
 		begin
 			suffices : y ∈ f⁻¹' U, simp at this, rw dist_comm, assumption,
-			apply hδ₁, rw [set.mem_set_of_eq, dist_comm], assumption 
+			apply hδ₁, rw [mem_set_of_eq, dist_comm], assumption 
 		end
 	⟩
 
 theorem contin_iff_preimg_open :
-(∀ (U : set Y) (h₀ : is_open' U), is_open' $ set.preimage f U) ↔ is_continuous f :=
+(∀ (U : set Y) (h₀ : is_open' U), is_open' $ preimage f U) ↔ is_continuous f :=
 iff.intro
 	(preimg_open_to_contin)
 	(λ hcontin U hopen, contin_to_preimg_open U hopen hcontin)
@@ -309,24 +311,24 @@ lemma inter_open_is_open  {U₀ U₁ : set X}
 	let ε := min ε₀ ε₁ in
 	⟨ε, by simp [hε₀, hε₁],
 		begin
-			rw set.subset_inter_iff, split,
-				{refine set.subset.trans _ hε₀',
+			rw subset_inter_iff, split,
+				{refine subset.trans _ hε₀',
 				simp, intros _ h _, assumption
 				},
-				refine set.subset.trans _ hε₁', simp
+				refine subset.trans _ hε₁', simp
 		end
 	⟩
 
-lemma inter_finite_open_is_open {I : set α} {U : α → set X} (hI : set.finite I) :
+lemma inter_finite_open_is_open {I : set α} {U : α → set X} (hI : finite I) :
 (∀ i ∈ I, is_open' $ U i) → (is_open' $ ⋂ i ∈ I, U i) :=
-set.finite.induction_on hI (λ x, by simp; from (λ s _, 
-	⟨1, ⟨by norm_num, set.subset_univ (open_ball s 1)⟩⟩)) $ λ i S hi hS hopen hopen',
+finite.induction_on hI (λ x, by simp; from (λ s _, 
+	⟨1, ⟨by norm_num, subset_univ (open_ball s 1)⟩⟩)) $ λ i S hi hS hopen hopen',
 	begin
-		rw set.bInter_insert,
+		rw bInter_insert,
 		apply inter_open_is_open,
-			{apply hopen', from set.mem_insert i S},
+			{apply hopen', from mem_insert i S},
 			apply hopen, intros j hj,
-			apply hopen', apply set.mem_union_right, assumption
+			apply hopen', apply mem_union_right, assumption
 	end
 
 /- The union of open sets is open-/
@@ -334,28 +336,28 @@ lemma union_open_is_open {U₀ U₁ : set X}
 (h₀ : is_open' U₀) (h₁ : is_open' U₁) : is_open' (U₀ ∪ U₁) := λ s hs,
 or.elim hs
 	(λ hs', let ⟨ε, hε, hε'⟩ := h₀ s hs' in
-		⟨ε, hε, set.subset.trans hε' (set.subset_union_left U₀ U₁)⟩)
+		⟨ε, hε, subset.trans hε' (subset_union_left U₀ U₁)⟩)
 	(λ hs', let ⟨ε, hε, hε'⟩ := h₁ s hs' in
-		⟨ε, hε, set.subset.trans hε' (set.subset_union_right U₀ U₁)⟩)
+		⟨ε, hε, subset.trans hε' (subset_union_right U₀ U₁)⟩)
 
 theorem Union_open_is_open {α} {U : α → set X}
 (h : ∀ i, is_open' $ U i) : is_open' $ ⋃ i, U i := λ x hx,
-	let ⟨i, hi⟩ := set.mem_Union.mp hx in
+	let ⟨i, hi⟩ := mem_Union.mp hx in
 	let ⟨ε, hε, hε'⟩ := h i x hi in
 	⟨ε, hε,
 	begin
-		refine set.subset.trans hε' _,
-		intros y hy, rw set.mem_Union,
+		refine subset.trans hε' _,
+		intros y hy, rw mem_Union,
 		from ⟨i, hy⟩
 	end
 	⟩
 
 /- The union of finitely many closed sets is open -/
-theorem union_finite_closed_is_open {I : set α} {U : α → set X} (hI : set.finite I)
+theorem union_finite_closed_is_open {I : set α} {U : α → set X} (hI : finite I)
 (h : ∀ i ∈ I, is_closed' $ U i) : (is_closed' $ ⋃ i ∈ I, U i) := 
 begin
 	unfold is_closed' at *,
-	rw set.compl_bUnion, from inter_finite_open_is_open hI h,
+	rw compl_bUnion, from inter_finite_open_is_open hI h,
 end
 
 /- The intersect of closed sets is closed-/
@@ -363,8 +365,10 @@ theorem Inter_closed_is_closed {α} {U : α → set X}
   (h : ∀ i, is_closed' $ U i) : is_closed' $ ⋂ i, U i := 
 begin
 	unfold is_closed' at *,
-	rw set.compl_Inter, from Union_open_is_open h
+	rw compl_Inter, from Union_open_is_open h
 end
+
+namespace closure'
 
 /- The closure of a closed set is itself -/
 theorem closure_self {S : set X} (h : is_closed' S) : (closure' S) = S :=
@@ -386,7 +390,7 @@ closure_self $ closure_closed S
 
 -- A set is smaller than its closure
 lemma subset_closure' {S : set X} : S ⊆ closure' S :=
-set.subset_Inter $ λ _, set.subset_Inter $ λ h, set.subset_Inter $ λ _, h
+subset_Inter $ λ _, subset_Inter $ λ h, subset_Inter $ λ _, h
 
 -- The limit points of a set is smaller than its closure
 lemma limit_points_sub_closure' {S : set X} : 
@@ -402,14 +406,14 @@ begin
 end
 
 lemma with_limit_points_sub_closure {S : set X} : 
-S ∪ limit_points S ⊆ closure' S := set.union_subset_iff.mpr $
+S ∪ limit_points S ⊆ closure' S := union_subset_iff.mpr $
 	⟨subset_closure', limit_points_sub_closure'⟩
 
 lemma closure_sub_with_limit_points {S : set X} : 
 closure' S ⊆ S ∪ limit_points S := λ x hx, sorry
 
 theorem with_limit_points_is_closure (S : set X) : 
-closure' S = S ∪ limit_points S := set.subset.antisymm_iff.mpr $
+closure' S = S ∪ limit_points S := subset.antisymm_iff.mpr $
 	⟨closure_sub_with_limit_points, with_limit_points_sub_closure⟩
 	
 /- If S ⊆ T, the the limit points of S ⊆ limit points of T -/
@@ -422,12 +426,66 @@ theorem closure_mono' {S T : set X} (h : S ⊆ T) : closure' S ⊆ closure' T :=
 begin
     iterate 2 {rw with_limit_points_is_closure},
     suffices : limit_points S ⊆ limit_points T,
-        rw set.union_subset_iff,
-        split, refine set.subset.trans h _, simp,
-            refine set.subset.trans this _, simp,
+        rw union_subset_iff,
+        split, refine subset.trans h _, simp,
+            refine subset.trans this _, simp,
     from limit_points_le h
 end
 
 theorem monotone_closure' : monotone $ @closure' X _ := λ _ _, closure_mono'
+
+/- Closure is the smallest closed subset -/
+theorem closure_is_min {S T : set X} 
+(h₀ : is_closed' T) (h₁ : S ⊆ T) : closure' S ⊆ T := λ x hx,
+begin
+  apply mem_Inter.mp hx T, simp only [mem_range],
+  refine ⟨h₁, by finish⟩
+end
+
+end closure'
+
+namespace interior'
+
+/- An alternative definition of interiror -/
+attribute [reducible]
+def interior'' (S : set X) := {x : X | x ∈ S ∧ ∃ ε > 0, open_ball x ε ⊆ S}
+notation S`⁰` := interior'' S
+
+/- The interior is open -/
+lemma interior'_is_open (S : set X) : is_open' $ interior' S :=
+Union_open_is_open $ λ _, Union_open_is_open $ λ _, Union_open_is_open $ λ h, h
+
+lemma interior''_is_open (S : set X) : is_open' $ S⁰ := λ x hx,
+let ⟨hS, ε, hε₀, hε₁⟩ := hx in 
+⟨ε, hε₀, λ y hy, 
+  ⟨by apply hε₁; assumption,
+  let ⟨δ, hδ₀, hδ₁⟩ := (open_ball_is_open x ε hε₀) y hy in ⟨δ, hδ₀, subset.trans hδ₁ hε₁⟩⟩ ⟩
+
+/- The interior is smaller than the set -/
+lemma interior'_subset (S : set X) : interior' S ⊆ S := λ x hx,
+let ⟨T, T', hT, hT'⟩ := mem_Union.mp hx in
+begin
+  simp at hT, cases hT with hT₀ hT₁,
+  suffices : (⋃ (h₀ : is_open' T), T) ⊆ T,
+    { apply hT₀, apply this, rw hT₁, assumption  },
+    { intros y hy, rw mem_Union at hy, cases hy with _ h, assumption  }
+end
+
+lemma interior''_subset (S : set X) : S⁰ ⊆ S := λ x hx, hx.1
+
+theorem eq_interior (S : set X) : interior' S = (S⁰) := 
+begin
+  rw subset.antisymm_iff, 
+  refine ⟨λ x hx, _, λ x hx, _⟩,
+    { refine ⟨interior'_subset S hx, _⟩, 
+      rcases interior'_is_open S x hx with ⟨ε, hε₀, hε₁⟩,
+      exact ⟨ε, hε₀, subset.trans hε₁ (interior'_subset S)⟩
+    },
+    { rw mem_Union, refine ⟨S⁰, _⟩,
+      rw mem_Union, refine ⟨interior''_subset S, _⟩,
+      rw mem_Union, exact ⟨interior''_is_open S, hx⟩ }
+end
+
+end interior'
 
 end open_closed_sets
