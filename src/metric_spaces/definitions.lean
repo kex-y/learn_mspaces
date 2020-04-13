@@ -33,6 +33,9 @@ def limit_points (S : set X) :=
 /- Definition of closure -/
 def closure' (S : set X) := ⋂ (T : set X) (h₀ : S ⊆ T) (h₁ : is_closed' T), T
 
-attribute [reducible] open_ball limit_points closure'
+/- Definition of interior -/
+def interior' (S : set X) := ⋃ (T : set X) (h₀ : T ⊆ S) (h₀ : is_open' T), T
+
+attribute [reducible] open_ball limit_points closure' interior'
 
 end definitions
