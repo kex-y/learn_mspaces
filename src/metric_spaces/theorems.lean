@@ -473,6 +473,7 @@ end
 
 lemma interior''_subset (S : set X) : S⁰ ⊆ S := λ x hx, hx.1
 
+@[simp]
 theorem eq_interior (S : set X) : interior' S = (S⁰) := 
 begin
   rw subset.antisymm_iff, 
@@ -485,6 +486,21 @@ begin
       rw mem_Union, refine ⟨interior''_subset S, _⟩,
       rw mem_Union, exact ⟨interior''_is_open S, hx⟩ }
 end
+
+/- The interior of an open set is itself -/
+theorem interior'_self {S : set X} (h : is_open' S) : 
+interior' S = S :=
+begin
+  rw subset.antisymm_iff,
+  refine ⟨interior'_subset S, λ _ hx, _⟩,
+    rw mem_Union, refine ⟨S, _⟩,
+    rw mem_Union, refine ⟨subset.refl S, _⟩,
+    rw mem_Union, refine ⟨h, hx⟩
+end
+
+/- The interior of the interior is itself -/
+@[simp] theorem interior'_interior {S : set X} : 
+interior' (interior' S) = interior' S:= interior'_self $ interior'_is_open S
 
 end interior'
 
