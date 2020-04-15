@@ -12,10 +12,11 @@ form a `complete_lattice`.
 variables {X : Type*} [metric_space X]
 variables {Y : Type*} [metric_space Y]
 
-open definitions
-open open_closed_sets
+open definitions set
 
 namespace closed_set
+
+open open_closed_sets.closure'
 
 /- Defining the structure of a closed set -/
 structure closed_set (X : Type*) [metric_space X] :=
@@ -30,8 +31,6 @@ def Closure (S : set X) : closed_set X :=
 
 theorem ext' {S T : closed_set X} (h : (S : set X) = T) : S = T :=
 by cases S; cases T; congr'
-
-open set
 
 /- Closed sets form a partial order -/
 instance : partial_order (closed_set X) :=
