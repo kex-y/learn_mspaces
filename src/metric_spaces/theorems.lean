@@ -513,4 +513,41 @@ theorem monotone_interiro'' : monotone $ @interior'' X _ := @interior''_mono X _
 
 end interior'
 
+namespace boundary
+
+open closure' interior'
+
+/- Alternative definition of boundary -/
+@[simp] theorem boundary' {S : set X} : boundary S = closure' S \ (S⁰) :=
+by rwa ←eq_interior S
+
+end boundary
+
 end open_closed_sets
+
+namespace convergence
+
+variables {s : ℕ → X}
+
+lemma dist_zero {x₀ x₁ : X} 
+(h : ∀ (ε : ℝ) (hε : 0 < ε), dist x₀ x₁ < ε ) : x₀ = x₁ :=
+eq_of_dist_eq_zero $ classical.by_contradiction $ λ hne,
+begin
+  cases lt_or_gt_of_ne hne with hlt hgt,
+  rw ←not_le at hlt, from hlt (metric_nonneg x₀ x₁),
+  linarith [h _ hgt]
+end
+
+example (a b : ℕ) : a ≤ max a b := by exact le_max_left a b
+
+/- Limits are unique -/
+theorem limit_unique (x₀ x₁ : X) (h₀ : s ⇒ x₀) (h₁ : s ⇒ x₁) : 
+x₀ = x₁ := dist_zero $ λ ε hε,
+  let ⟨N₀, hN₀⟩ := h₀ (ε / 2) (half_pos hε) in
+  let ⟨N₁, hN₁⟩ := h₁ (ε / 2) (half_pos hε) in
+  let N := max N₀ N₁ in
+  lt_of_le_of_lt (dist_triangle x₀ (s N) x₁) $
+by linarith [hN₀ N (le_max_left _ _), 
+  show dist (s N) x₁ < ε / 2, by rw dist_comm; from hN₁ N (le_max_right _ _)]
+
+end convergence
