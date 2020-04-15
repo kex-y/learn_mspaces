@@ -36,6 +36,16 @@ def closure' (S : set X) := ⋂ (T : set X) (h₀ : S ⊆ T) (h₁ : is_closed' 
 /- Definition of interior -/
 def interior' (S : set X) := ⋃ (T : set X) (h₀ : T ⊆ S) (h₀ : is_open' T), T
 
-attribute [reducible] open_ball limit_points closure' interior'
+/- Definition of boundary -/
+def boundary (S : set X) := closure' S \ interior' S
+
+attribute [reducible] open_ball limit_points closure' interior' boundary
+
+def converge_to (s : ℕ → X) (x : X) := 
+∀ (ε : ℝ) (hε : 0 < ε), ∃ N : ℕ, ∀ (n : ℕ) (hn : N ≤ n), dist x (s n) < ε 
+notation s ` ⇒ ` x := converge_to s x
+
+def cauchy (s : ℕ → X) :=
+∀ (ε : ℝ) (hε : 0 < ε), ∃ N : ℕ, ∀ (n m : ℕ) (hn : N ≤ n) (hm : N ≤ m), dist (s n) (s m) < ε 
 
 end definitions
