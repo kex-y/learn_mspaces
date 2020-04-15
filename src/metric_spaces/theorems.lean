@@ -498,9 +498,18 @@ begin
     rw mem_Union, refine ⟨h, hx⟩
 end
 
+theorem interior''_self {S : set X} (h : is_open' S) : 
+S⁰ = S := by rw ←eq_interior; exact interior'_self h
+
 /- The interior of the interior is itself -/
 @[simp] theorem interior'_interior {S : set X} : 
 interior' (interior' S) = interior' S:= interior'_self $ interior'_is_open S
+
+/- If S ⊆ T, then S⁰ ⊆ T⁰ -/
+theorem interior''_mono {S T : set X} (h : S ⊆ T) : 
+S⁰ ⊆ (T⁰) := λ x ⟨hx₀, ε, hε₀, hε₁⟩, ⟨h hx₀, ε, hε₀, subset.trans hε₁ h⟩
+
+theorem monotone_interiro'' : monotone $ @interior'' X _ := @interior''_mono X _
 
 end interior'
 
