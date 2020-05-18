@@ -33,10 +33,10 @@ instance metric_space_example_R : metric_space ℝ :=
 {   dist := λ x y, abs (x - y),
 	dist_self := λ x, show abs (x - x) = 0, by simp,
 	eq_of_dist_eq_zero := λ x y, show abs (x - y) = 0 → x = y,
-		by {rw abs_eq_zero, intro h, linarith [h]},
+		by { rw abs_eq_zero, intro h, linarith [h] },
 	dist_comm := λ x y, show abs (x - y) = abs (y - x), from abs_sub x y,
 	dist_triangle := λ x y z, show abs (x - z) ≤ abs (x - y) + abs (y - z),
-		by {convert abs_add (x - y) (y - z), linarith}
+		by { convert abs_add (x - y) (y - z), linarith }
 }
 
 -- The discrete metric is a metric on any set X
@@ -58,9 +58,9 @@ instance metric_space_example_discrete : metric_space X :=
 {   dist := λ x y, metric_example X x y,
 	dist_self := λ x, show metric_example X x x = 0, by metric_example_tac,
 	eq_of_dist_eq_zero := λ x y, show metric_example X x y = 0 → x = y,
-		by {unfold metric_example, split_ifs, all_goals {finish}},
+		by { unfold metric_example, split_ifs, all_goals {finish} },
 	dist_comm := λ x y, show metric_example X x y = metric_example X y x,
-		by {unfold metric_example, split_ifs, all_goals {finish}},
+		by { unfold metric_example, split_ifs, all_goals {finish} },
 	dist_triangle := λ x y z, show metric_example X x z ≤ metric_example X x y + metric_example X y z,
 	begin
 		unfold metric_example,
@@ -109,7 +109,7 @@ is_continuous (g ∘ f) := λ a ε hε,
 			suffices : dist x₀ x₁ = 0 ∧ dist y₀ y₁ = 0,
 				rwa [eq_of_dist_eq_zero this.left, eq_of_dist_eq_zero this.right],
 			split,
-			all_goals {linarith [metric_nonneg x₀ x₁, metric_nonneg y₀ y₁, h]}
+			all_goals { linarith [metric_nonneg x₀ x₁, metric_nonneg y₀ y₁, h] }
 		end,
 	dist_comm := λ ⟨x₀, y₀⟩ ⟨x₁, y₁⟩, 
 		show dist x₀ x₁ + dist y₀ y₁ = dist x₁ x₀ + dist y₁ y₀, by simp [dist_comm],
@@ -150,14 +150,12 @@ begin
 	suffices : dist (f x.1) (f x₀.1) < ε ∧ dist (g x.2) (g x₀.2) < ε,
 		simp [this.left, this.right],
 	split,
-		{apply hf x.1, simp at hx, apply lt_of_le_of_lt _ hx.left,
+		{ apply hf x.1, simp at hx, apply lt_of_le_of_lt _ hx.left,
 		show dist x.1 x₀.1 ≤ max (dist x.1 x₀.1) (dist x.2 x₀.2),
-		rw le_max_iff, left, apply le_refl
-		},
-		{apply hg x.2, simp at hx, apply lt_of_le_of_lt _ hx.right,
+		rw le_max_iff, left, apply le_refl  },
+		{ apply hg x.2, simp at hx, apply lt_of_le_of_lt _ hx.right,
 		show dist x.2 x₀.2 ≤ max (dist x.1 x₀.1) (dist x.2 x₀.2),
-		rw le_max_iff, right, apply le_refl
-		}
+		rw le_max_iff, right, apply le_refl }
 end
 ⟩
 
@@ -261,10 +259,9 @@ lemma nonpos_empty {x₀ : X} {r : ℝ} (h₁ : r ≤ 0) :
 open_ball x₀ r = ∅ :=
 begin
 	ext, split, 
-		{intro hx, rw mem_set_of_eq at hx,
+		{ intro hx, rw mem_set_of_eq at hx,
 		exfalso, apply (not_le.mpr hx), apply le_trans h₁, 
-		from metric_nonneg x₀ x,
-		},
+		from metric_nonneg x₀ x },
 		intro hx, exfalso, from hx
 end
 
@@ -312,9 +309,8 @@ lemma inter_open_is_open  {U₀ U₁ : set X}
 	⟨ε, by simp [hε₀, hε₁],
 		begin
 			rw subset_inter_iff, split,
-				{refine subset.trans _ hε₀',
-				simp, intros _ h _, assumption
-				},
+				{ refine subset.trans _ hε₀',
+				simp, intros _ h _, assumption },
 				refine subset.trans _ hε₁', simp
 		end
 	⟩
@@ -326,7 +322,7 @@ finite.induction_on hI (λ x, by simp; from (λ s _,
 	begin
 		rw bInter_insert,
 		apply inter_open_is_open,
-			{apply hopen', from mem_insert i S},
+			{ apply hopen', from mem_insert i S },
 			apply hopen, intros j hj,
 			apply hopen', apply mem_union_right, assumption
 	end
@@ -374,7 +370,7 @@ namespace closure'
 theorem closure_self {S : set X} (h : is_closed' S) : (closure' S) = S :=
 begin
 	ext, unfold closure', simp, split,
-		{intro hx, apply hx; finish},
+		{ intro hx, apply hx; finish },
 		intros hx T hT₀ hT₁, apply hT₀, assumption
 end
 
@@ -537,8 +533,6 @@ begin
   rw ←not_le at hlt, from hlt (metric_nonneg x₀ x₁),
   linarith [h _ hgt]
 end
-
-example (a b : ℕ) : a ≤ max a b := by exact le_max_left a b
 
 /- Limits are unique -/
 theorem limit_unique (x₀ x₁ : X) (h₀ : s ⇒ x₀) (h₁ : s ⇒ x₁) : 
