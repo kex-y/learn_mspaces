@@ -26,8 +26,8 @@ structure closed_set (X : Type*) [metric_space X] :=
 instance : has_coe (closed_set X) (set X) := ⟨closed_set.carrier⟩
 
 def Closure (S : set X) : closed_set X := 
-{   carrier := closure' S,
-    is_closed := closure_closed S }
+{ carrier := closure' S,
+  is_closed := closure_closed S }
 
 theorem ext' {S T : closed_set X} (h : (S : set X) = T) : S = T :=
 by cases S; cases T; congr'
@@ -42,11 +42,11 @@ ext' $ show ↑T = closure' T.carrier, by {rw closure_self, refl, from T.2}
 
 /- Closed sets form a Galois insertion -/
 def gi : @galois_insertion (set X) (closed_set X) _ _ Closure closed_set.carrier := 
-{   choice := λ S h, Closure S,
-    gc := λ S T, 
-        ⟨λ h, set.subset.trans subset_closure' h, λ h, by rw Closure_self T; from closure_mono' h⟩,
-    le_l_u := λ S, subset_closure',
-    choice_eq := λ _ _, rfl }
+{ choice := λ S h, Closure S,
+  gc := λ S T, 
+    ⟨λ h, set.subset.trans subset_closure' h, λ h, by rw Closure_self T; from closure_mono' h⟩,
+  le_l_u := λ S, subset_closure',
+  choice_eq := λ _ _, rfl }
 
 /- Closed sets form a complete lattice -/
 instance : complete_lattice (closed_set X) := 

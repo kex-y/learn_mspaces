@@ -42,7 +42,7 @@ is_continuous (g ∘ f) := λ a ε hε,
 
 /- The product of two metric spaces is also a metric space (very buggy, hence setting the priority to 0) -/
 @[priority 0] instance : metric_space (X × Y) :=
-{   dist := λ ⟨x₀, y₀⟩ ⟨x₁, y₁⟩, dist x₀ x₁ + dist y₀ y₁,
+{ dist := λ ⟨x₀, y₀⟩ ⟨x₁, y₁⟩, dist x₀ x₁ + dist y₀ y₁,
 	dist_self := λ ⟨x, y⟩, show dist x x + dist y y = 0, by simp,
 	eq_of_dist_eq_zero :=
 		begin

@@ -21,17 +21,17 @@ structure metric_morph (X Y : Metric_space) :=
 
 /- Identity metric morphism -/
 def id_metric_morph (X : Metric_space) : metric_morph X X := 
-{   to_fun := λ x : X.1, x,
-    is_contin := λ a ε hε, 
-    ⟨ε, hε, λ x, by simp⟩
+{ to_fun := λ x : X.1, x,
+  is_contin := λ a ε hε, 
+  ⟨ε, hε, λ x, by simp⟩
 }
 
 /- The composition of two continuous functions is continuous -/
 lemma comp_continuous {f : X.1 → Y.1} {g : Y.1 → Z.1} (h₁ : is_continuous f) (h₂ : is_continuous g) : 
 is_continuous (g ∘ f) := λ a ε hε, 
-    let ⟨δ₁, hg₁, hg₂⟩ := h₂ (f a) ε hε in
-    let ⟨δ₂, hf₁, hf₂⟩ := h₁ a δ₁ hg₁ in
-    ⟨δ₂, hf₁, λ x hx, hg₂ (f x) (hf₂ x hx)⟩
+  let ⟨δ₁, hg₁, hg₂⟩ := h₂ (f a) ε hε in
+  let ⟨δ₂, hf₁, hf₂⟩ := h₁ a δ₁ hg₁ in
+  ⟨δ₂, hf₁, λ x hx, hg₂ (f x) (hf₂ x hx)⟩
 
 /- Two metric_morph are the same if their underlying functiosn are the same -/
 @[ext] lemma ext {f g : metric_morph X Y} (h : ∀ x : X.1, f.to_fun x = g.to_fun x) : f = g :=
@@ -45,12 +45,12 @@ by ext; rw [function.comp_app, show (id_metric_morph Y).to_fun (f.to_fun x) = f.
 
 /- The category of metric spaces -/
 instance category_metric_space : category (Metric_space) := 
-{   hom := metric_morph,
-    id := id_metric_morph,
-    comp := λ X Y Z f g, by {split, from comp_continuous f.is_contin g.is_contin},
-    id_comp' := λ X Y f, by ext; simp [id_comp],
-    comp_id' := λ X Y f, by ext; simp [comp_id],
-    assoc' := λ W X Y Z f g h, by simp
+{ hom := metric_morph,
+  id := id_metric_morph,
+  comp := λ X Y Z f g, by {split, from comp_continuous f.is_contin g.is_contin},
+  id_comp' := λ X Y f, by ext; simp [id_comp],
+  comp_id' := λ X Y f, by ext; simp [comp_id],
+  assoc' := λ W X Y Z f g h, by simp
 }
  
 /- Definition of isometry on metric spaces -/
@@ -63,8 +63,8 @@ structure metric_morph2 (X Y : Metric_space) :=
 
 /- Identity metric morphism -/
 def id_metric_morph2 (X : Metric_space) : metric_morph2 X X := 
-{   to_fun := λ x : X.1, x,
-    is_iso := λ x y, rfl
+{ to_fun := λ x : X.1, x,
+  is_iso := λ x y, rfl
 }
 
 /- The composition of two isometries is continuous -/
@@ -83,10 +83,10 @@ by ext; rw [function.comp_app, show (id_metric_morph2 Y).to_fun (f.to_fun x) = f
 
 /- The category of metric spaces with isometries -/
 instance category_metric_space2 : category (Metric_space) := 
-{   hom := metric_morph2,
-    id := id_metric_morph2,
-    comp := λ X Y Z f g, by {split, from comp_isometry f.is_iso g.is_iso},
-    id_comp' := λ X Y f, by ext; simp [id_comp2],
-    comp_id' := λ X Y f, by ext; simp [comp_id2],
-    assoc' := λ W X Y Z f g h, by simp
+{ hom := metric_morph2,
+  id := id_metric_morph2,
+  comp := λ X Y Z f g, by {split, from comp_isometry f.is_iso g.is_iso},
+  id_comp' := λ X Y f, by ext; simp [id_comp2],
+  comp_id' := λ X Y f, by ext; simp [comp_id2],
+  assoc' := λ W X Y Z f g h, by simp
 }
