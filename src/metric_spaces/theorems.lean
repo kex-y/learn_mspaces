@@ -1,6 +1,13 @@
 import metric_spaces.definitions
 
-/- Definition of a metric space
+/- 
+A metric space (X, d) is a non-empty set X alongside a function 
+d : X ⨯ X → ℝ satisfying 
+- ∀ x, y, ∈ X, d(x, y) ≥ 0 with equality iff x = y.
+- ∀ x, y, ∈ X, d(x, y) = d(y, x)
+- ∀ x, y, z ∈ X, d(x, z) ≤ d(x, y) + d(y, z).
+We call d a metric of the metric space (X, d).
+
 class metric_space (α : Type u) extends has_dist α : Type u :=
 (dist_self : ∀ x : α, dist x x = 0)
 (eq_of_dist_eq_zero : ∀ {x y : α}, dist x y = 0 → x = y)
