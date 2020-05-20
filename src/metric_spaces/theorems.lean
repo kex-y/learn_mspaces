@@ -18,9 +18,7 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 
 noncomputable theory
 
-open set
-
-open definitions
+open set definitions
 
 variables {α : Type*}
 variables {X : Type*} [metric_space X]
@@ -304,6 +302,10 @@ begin
 	unfold is_closed' at *,
 	rw compl_bUnion, from inter_finite_open_is_open hI h,
 end
+
+/- The empty set is closed-/
+theorem empty_is_closed : is_closed' (∅ : set X) :=
+λ x hx, ⟨1, zero_lt_one, by simp⟩
 
 /- The intersect of closed sets is closed-/
 theorem Inter_closed_is_closed {α} {U : α → set X}
