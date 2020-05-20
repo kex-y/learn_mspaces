@@ -405,8 +405,70 @@ lemma with_limit_points_sub_closure {S : set X} :
 S ∪ limit_points S ⊆ closure' S := union_subset_iff.mpr $
 	⟨subset_closure', limit_points_sub_closure'⟩
 
+lemma closure_sub_sub_closed {S T : set X} 
+(hT : is_closed' T) (hST : S ⊆ T) : closure' S ⊆ T :=
+begin
+  intros x hx, rw mem_Inter at hx,
+  have := mem_Inter.1 (hx T) hST,
+  refine mem_Inter.1 this hT
+end
+
+/- Sequences within a set and it's limit points  that converges converges to itself-/
+lemma limit_in_with_limit_points {a : ℕ → X} {l} {S : set X}
+(h : ∀ n, a n ∈ S ∪ limit_points S) (h₁ : a ⇒ l) : 
+l ∈ S ∪ limit_points S := 
+begin
+  cases classical.em (∃ n, l = a n) with heq hneq,
+  cases heq with n hn, cases h n with hS hlS,
+  left, exact ((symm hn) ▸ hS), right, exact ((symm hn) ▸ hlS),
+
+  push_neg at hneq, cases classical.em (l ∈ S) with _ hlS,
+    { left, assumption },
+    { right, intros ε hε,
+      cases h₁ (ε / 2) (half_pos hε) with n hn, cases h n with hS' hlS',
+      exact ⟨a n, hS', hneq n, lt_trans (hn n (le_refl n)) (half_lt_self hε)⟩,
+      
+      rcases hlS' (ε / 2) (half_pos hε) with ⟨y, hy₀, hy₁, hy₂⟩,
+      refine ⟨y, hy₀, λ heq, hlS $ _, lt_of_le_of_lt (dist_triangle l (a n) y) _⟩,
+      { rw heq, exact hy₀ },
+      { rw mem_set_of_eq at hy₂, linarith [hy₂, hn n (le_refl n)] }
+    } 
+end
+
+/-
+By constructing a sequence that converges outside of the limit points with show 
+by contradiction that a set with its limit points is closed
+-/
+theorem with_limit_points_is_closed (S : set X) : 
+is_closed' (S ∪ limit_points S) := 
+begin
+  intros s hs,
+  apply classical.by_contradiction,
+  intro h, push_neg at h,
+  have : ∀ n : ℕ,
+    ∃ x ∈ open_ball s (1 / (n + 1)), x ∈ (S ∪ limit_points S),
+    { intro n, apply classical.by_contradiction,
+      push_neg, intro hn,
+      exact h (1 / (n + 1)) (nat.one_div_pos_of_nat) hn },
+  simp only [classical.skolem] at this,
+  rcases this with ⟨a, ha₀, ha₁⟩,
+  have : a ⇒ s,
+    { intros ε hε,
+      cases exists_nat_gt (1 / ε) with N hN,
+      refine ⟨N, λ n hn, _⟩,
+      have := ha₀ n, rw mem_set_of_eq at this,
+      refine lt_trans this _,
+      rw (one_div_lt _ hε),
+      exact lt_of_lt_of_le hN (by norm_cast; exact le_trans hn (nat.le_succ n)),
+      norm_cast, exact nat.succ_pos n
+    },
+  exact hs (limit_in_with_limit_points ha₁ this)
+end
+
 lemma closure_sub_with_limit_points {S : set X} : 
-closure' S ⊆ S ∪ limit_points S := λ x hx, sorry
+closure' S ⊆ S ∪ limit_points S := 
+closure_sub_sub_closed (with_limit_points_is_closed S) 
+	(subset_union_left S (limit_points S))
 
 theorem with_limit_points_is_closure (S : set X) : 
 closure' S = S ∪ limit_points S := subset.antisymm_iff.mpr $
