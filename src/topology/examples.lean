@@ -1,8 +1,8 @@
-import topology.definitions metric_spaces.theorems
+import topology.theorems
 import data.set.finite
 
 open definitions set
-variables {M : Type*} [metric_space M]
+
 variables {X : Type*}
 
 namespace examples
@@ -42,5 +42,18 @@ def example_topology : topological_space X :=
 /-
 TODO: Add some examples of topological spaces
 -/
+
+variables {Y : Type*} [topological_space X] [topological_space Y]
+
+-- The identity map is continuous
+example : is_continuous (@id X) := λ _ hU, hU
+
+-- The constant map is continuous
+example (y : Y) : is_continuous (λ x : X, y) := λ U hU,
+begin
+  cases (classical.em $ y ∈ U) with hinU hninU,
+    { convert is_open_univ, ext, simp [hinU] },
+    { convert is_open_empty, ext, simp [hninU] }
+end
 
 end examples
