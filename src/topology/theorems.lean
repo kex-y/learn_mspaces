@@ -1,4 +1,4 @@
-import topology.definitions metric_spaces.theorems
+import topology.definitions
 
 /-
 A topological space (X, 𝒯) consists of a non-empty set X 
@@ -19,6 +19,9 @@ structure topological_space (α : Type u) :=
 -/
 
 variables {X : Type*} [topological_space X]
+variables {Y : Type*} [topological_space Y] 
+variables {Z : Type*} [topological_space Z]
+
 
 open definitions set
 
@@ -55,3 +58,14 @@ end
 theorem open_iff_has_smaller {U : set X} : is_open U ↔ 
 ∀ x ∈ U, ∃ (Nₓ : set X) (h₀ : is_open Nₓ), x ∈ Nₓ ∧ Nₓ ⊆ U :=
 ⟨has_smaller_of_open, open_of_has_smaller⟩
+
+namespace mapping
+
+example (f : X → Y) (g : Y → Z) : ∀ x : X, (g ∘ f)(x) = g(f(x)) := by exact congr_fun rfl
+
+/- The composition of two continuous functions is also continuous -/
+theorem comp_contin {f : X → Y} {g : Y → Z} 
+(hf : is_continuous f) (hg : is_continuous g) : 
+is_continuous (g ∘ f) := λ U hU, hf _ (hg _ hU)
+
+end mapping
