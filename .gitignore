@@ -2,3 +2,4 @@
 /_target
 /leanpkg.path
 /src/metric_spaces/tests.lean
+/src/topology/tests.lean
