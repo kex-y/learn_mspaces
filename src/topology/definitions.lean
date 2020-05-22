@@ -28,5 +28,6 @@ structure topological_space_equiv
 (X Y) [topological_space X] [topological_space Y] extends X ≃ Y :=
 (contin     : is_continuous to_fun)
 (inv_contin : is_continuous inv_fun)
+notation X ` ≃* ` Y := topological_space_equiv X Y
 
 end definitions
