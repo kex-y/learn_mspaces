@@ -61,11 +61,67 @@ theorem open_iff_has_smaller {U : set X} : is_open U ↔
 
 namespace mapping
 
-example (f : X → Y) (g : Y → Z) : ∀ x : X, (g ∘ f)(x) = g(f(x)) := by exact congr_fun rfl
+open function equiv
 
 /- The composition of two continuous functions is also continuous -/
 theorem comp_contin {f : X → Y} {g : Y → Z} 
 (hf : is_continuous f) (hg : is_continuous g) : 
 is_continuous (g ∘ f) := λ U hU, hf _ (hg _ hU)
+
+/- A function is continuous iff. it is continuous at every point -/
+lemma contin_at_all_of_contin {f : X → Y} (h : is_continuous f) : 
+∀ x : X, is_continuous_at f x := λ _ U _ hU, h U hU
+
+lemma contin_of_contin_at_all {f : X → Y} (h : ∀ x : X, is_continuous_at f x) : 
+is_continuous f := λ U hU,
+begin
+  cases (classical.em $ f ⁻¹' U = ∅) with hempt hnempt,
+    { rw hempt, exact empty_is_open },
+    { cases ne_empty_iff_nonempty.1 hnempt with x hx,
+      exact h _ _ (mem_preimage.1 hx) hU }
+end
+
+theorem contin_iff_contin_at_all (f : X → Y) : 
+is_continuous f ↔ ∀ x : X, is_continuous_at f x :=
+  ⟨contin_at_all_of_contin, contin_of_contin_at_all⟩
+
+/- 
+A bijection of sets f : X → Y gives a homeomorphism of topological 
+spaces X → Y iff. it induces a bijection 𝒯(X) → 𝒯(Y) : U → f(U)
+-/
+lemma topo_contin_biject_of_equiv (hequiv : X ≃* Y) : 
+∃ (f : X → Y) (h₀ : bijective f) (h₁ : is_continuous f), 
+∀ U : set X, is_open U → is_open (f '' U) := 
+begin
+  refine ⟨hequiv.to_fun, _, hequiv.contin, λ U hU, _⟩,
+  refine ⟨hequiv.left_inv.injective, hequiv.right_inv.surjective⟩,
+  convert hequiv.inv_contin U hU, 
+  ext, split; intro hx,
+    { rcases (mem_image _ _ _).1 hx with ⟨y, hy₀, hy₁⟩,
+      rw ←hy₁, simp [hy₀] },
+    { refine ⟨(hequiv.to_equiv.symm) x, hx, _⟩, simp }
+end
+
+lemma preimage_eq_inv {f : X → Y} {U : set X} (hf : bijective f) : 
+f '' U = (of_bijective hf).inv_fun ⁻¹' U :=
+begin
+  ext, split; intro hx,
+    { rcases (mem_image _ _ _).1 hx with ⟨y, hy₀, hy₁⟩,
+      rw [←hy₁, mem_preimage], 
+      have : left_inverse (of_bijective hf).inv_fun f := 
+        (of_bijective hf).left_inv, 
+      rwa this y },
+    { refine ⟨(of_bijective hf).inv_fun x, hx, _⟩,
+      have : right_inverse (of_bijective hf).inv_fun f := 
+        (of_bijective hf).right_inv,
+      rwa this x
+    }
+end
+
+noncomputable lemma equiv_of_topo_contin_biject {f : X → Y} (hf₀ : bijective f) 
+(hf₁ : ∀ U : set X, is_open U → is_open (f '' U)) (hf₂ : is_continuous f) : X ≃* Y :=
+{ contin := hf₂,
+  inv_contin := λ U hU, by rw ←preimage_eq_inv hf₀; exact hf₁ U hU,
+  .. of_bijective hf₀ }
 
 end mapping
