@@ -22,12 +22,21 @@ def is_continuous (f : X → Y) : Prop :=
 def is_continuous_at (f : X → Y) (x : X) : Prop :=
   ∀ U : set Y, f x ∈ U → is_open U → is_open (f ⁻¹' U)
 
-open function
-
 structure topological_space_equiv 
 (X Y) [topological_space X] [topological_space Y] extends X ≃ Y :=
 (contin     : is_continuous to_fun)
 (inv_contin : is_continuous inv_fun)
 notation X ` ≃* ` Y := topological_space_equiv X Y
+
+/- We define the notion of being closed and the closure similar to 
+how we defined it for metric spaces: its complemnet is open and the 
+smallest closed set containing the set. We will use mathlib's 
+definition -/
+
+/- We also define limit points for topological spaces similarly -/
+def limit_points (U : set X) :=
+  {x : X | ∀ U' : set X, is_open U' → x ∈ U' → U' ∩ U ≠ ∅}
+
+attribute [reducible] limit_points
 
 end definitions
