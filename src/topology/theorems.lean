@@ -1,4 +1,4 @@
-import topology.definitions
+import topology.definitions tactic
 
 /-
 A topological space (X, 𝒯) consists of a non-empty set X 
@@ -35,6 +35,9 @@ end
 /-
 If X is a topological space, then U ⊆ X is open iff for all x ∈ U,
 there exists an open set Nₓ with x ∈ Nₓ and Nₓ ⊆ U
+
+This theorem will be useful when we want to prove that a particular 
+set is open or closed
 -/
 -- The forward direction is trivial enough
 lemma has_smaller_of_open {U : set X} (h : is_open U) : 
@@ -89,7 +92,7 @@ is_continuous f ↔ ∀ x : X, is_continuous_at f x :=
 A bijection of sets f : X → Y gives a homeomorphism of topological 
 spaces X → Y iff. it induces a bijection 𝒯(X) → 𝒯(Y) : U → f(U)
 -/
-lemma topo_contin_biject_of_equiv (hequiv : X ≃* Y) : 
+theorem topo_contin_biject_of_equiv (hequiv : X ≃* Y) : 
 ∃ (f : X → Y) (h₀ : bijective f) (h₁ : is_continuous f), 
 ∀ U : set X, is_open U → is_open (f '' U) := 
 begin
@@ -118,10 +121,49 @@ begin
     }
 end
 
-noncomputable lemma equiv_of_topo_contin_biject {f : X → Y} (hf₀ : bijective f) 
+noncomputable theorem equiv_of_topo_contin_biject {f : X → Y} (hf₀ : bijective f) 
 (hf₁ : ∀ U : set X, is_open U → is_open (f '' U)) (hf₂ : is_continuous f) : X ≃* Y :=
 { contin := hf₂,
   inv_contin := λ U hU, by rw ←preimage_eq_inv hf₀; exact hf₁ U hU,
   .. of_bijective hf₀ }
 
 end mapping
+
+namespace closed
+
+/- The closure of a set is the set of limit points -/
+lemma limit_points_is_closed {U : set X}: 
+is_closed $ limit_points U := 
+begin
+  unfold is_closed,
+  refine open_iff_has_smaller.2 (λ x hx, _),
+  simp at hx, rcases hx with ⟨U', hU'₀, hU'₁, hU'₂⟩,
+  exact ⟨U', hU'₀, hU'₁, λ y hy, by simp; exact ⟨U', hU'₀, hy, hU'₂⟩⟩,
+end
+
+lemma closure_is_min {U U' : set X} (hle : U ⊆ U') (hc : is_closed U') :
+closure U ⊆ U' := 
+begin
+  unfold closure, 
+  intros x hx, rw mem_sInter at hx,
+  exact hx U' ⟨hc, hle⟩
+end
+
+lemma limit_points_ge {U : set X} : U ⊆ limit_points U := 
+λ x hx _ _ hU', ne_empty_iff_nonempty.2 ⟨x, hU', hx⟩
+
+lemma closure_le_limit_points (U : set X) :
+closure U ⊆ limit_points U := 
+  closure_is_min limit_points_ge limit_points_is_closed
+
+lemma limit_points_le_closure (U : set X) :
+limit_points U ⊆ closure U := λ x hx U' hU',
+classical.by_contradiction $ λ hf,
+  let ⟨y, hy⟩ := ne_empty_iff_nonempty.1 (hx (- U') (hU'.1) hf) in
+not_subset.2 ⟨y, hy.2, hy.1⟩ hU'.2
+
+theorem closure_eq_limit_points (U : set X) : 
+closure U = limit_points U :=
+le_antisymm (closure_le_limit_points U) (limit_points_le_closure U)
+
+end closed
