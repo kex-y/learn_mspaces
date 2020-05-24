@@ -37,6 +37,14 @@ definition -/
 def limit_points (U : set X) :=
   {x : X | ∀ U' : set X, is_open U' → x ∈ U' → U' ∩ U ≠ ∅}
 
-attribute [reducible] limit_points
+/- The interior of a set U is defined to be the uninon of all open 
+sets smaller than U thats open -/
+
+/- A point x is an interior point of a set U if there exist an open 
+set Nₓ, x ∈ Nₓ and Nₓ ⊆ U -/
+def interior_points (U : set X) :=
+  {x : X | ∃ (U' : set X) (h₀ : is_open U') (h₁ : U' ⊆ U), x ∈ U'}
+
+attribute [reducible] limit_points interior_points
 
 end definitions
