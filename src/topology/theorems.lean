@@ -176,11 +176,11 @@ theorem set_le_closure (U : set X) : U ⊆ closure U :=
 λ x hx, mem_sInter.1 $ λ U' hU', hU'.2 hx
 
 /- If A ⊆ B then the closure of A is smaller than the closure of B -/
-theorem closure_mono (U V : set X) (hle : U ⊆ V) :
+theorem closure_mono {U V : set X} (hle : U ⊆ V) :
 closure U ⊆ closure V := λ x hx A hA, hx _ ⟨hA.1, subset.trans hle hA.2⟩
 
 /- The closure of a closed set is itself-/
-theorem closure_of_closed (U : set X) (h : is_closed U) :
+theorem closure_of_closed {U : set X} (h : is_closed U) :
 closure U = U := ext $ λ x, 
   ⟨λ hx, hx U ⟨h, subset.refl U⟩, λ hx, set_le_closure U hx⟩
 
@@ -197,5 +197,71 @@ begin
   rcases hU' with ⟨_, ⟨hU'₀, _⟩, hU'₁⟩,
   exact hU'₁ ▸ hU'₀
 end
+
+namespace interior
+
+/- The interior of a set equals the set of its interior points -/
+theorem interior_eq_interior_points {U : set X} :
+interior U = interior_points U := ext $ λ x,
+  ⟨λ hx, let ⟨U', ⟨hU'₀, hU'₁⟩, hU'₂⟩ := hx in ⟨U', hU'₀, hU'₁, hU'₂⟩,
+   λ hx, let ⟨U', hU'₀, hU'₁, hU'₂⟩ := hx in ⟨U', ⟨hU'₀, hU'₁⟩, hU'₂⟩⟩
+
+/- The closure of -U equals the complement of the interior of U -/
+theorem closure_compl_eq_compl_interior {U : set X} :
+closure (-U) = - interior U := 
+begin
+  ext, split; rw [closure_eq_limit_points, interior_eq_interior_points],
+    { intros hx₀ hx₁,
+      rcases hx₁ with ⟨U', hU'₀, hU'₁, hU'₂⟩,
+      exact hx₀ U' hU'₀ hU'₂ (diff_eq_empty.2 hU'₁) },
+    { intros hx U' hU'₀ hU'₁ hU'₂,
+      simp at hx, exact hx U' hU'₀ (diff_eq_empty.1 hU'₂) hU'₁ }
+end
+
+theorem interior_eq_compl_closure_compl {U : set X} :
+interior U = - closure (-U) := by simp [closure_compl_eq_compl_interior]
+
+/- With the above theorem in place, we can straightaway analougous theorems 
+to the ones we've proved for closure -/
+
+/- The interior of a set is smaller than the set -/
+theorem interior_le_set (U : set X) : interior U ⊆ U := 
+by rw [interior_eq_compl_closure_compl, compl_subset_comm]; exact set_le_closure (-U)
+
+/- If A ⊆ B, then the interior of A ⊆ interior of B -/
+theorem interior_mono {U V : set X} (hle : U ⊆ V) : 
+interior U ⊆ interior V := 
+begin 
+  repeat { rw [interior_eq_compl_closure_compl] },
+  rw [compl_subset_comm, compl_compl],
+  exact closure_mono (compl_subset_compl.mpr hle)
+end
+
+/- The interior of an open set is itself -/
+theorem interior_of_open {U : set X} (h : is_open U) :
+interior U = U := 
+begin
+  rw interior_eq_compl_closure_compl,
+  suffices : closure (-U) = -U, simp [this],
+  exact closure_of_closed (by simp [compl_compl, h])
+end
+
+/- The interior of a set is open -/
+theorem interior_is_open (U : set X) : is_open $ interior U :=
+by rw interior_eq_compl_closure_compl; simp [closure_is_closed]
+
+/- The interior of the interior is the interior -/
+theorem interior_of_interior (U : set X) :
+(interior $ interior U) = interior U := 
+interior_of_open $ interior_is_open U
+
+/- The interior of a set is the larges open set contained in 
+the set -/
+theorem interior_is_max {U U' : set X} (hle : U' ⊆ U) (hc : is_open U') :
+U' ⊆ interior U := 
+by rw [interior_eq_compl_closure_compl, subset_compl_comm];
+  exact closure_is_min (compl_subset_compl.2 hle) (by simp [hc])
+
+end interior
 
 end closed
