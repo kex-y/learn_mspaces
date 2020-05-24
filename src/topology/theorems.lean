@@ -22,6 +22,8 @@ variables {X : Type*} [topological_space X]
 variables {Y : Type*} [topological_space Y] 
 variables {Z : Type*} [topological_space Z]
 
+/- We allow excluded middle since we are not computer scientists -/
+local attribute [instance] classical.prop_decidable
 
 open definitions set
 
@@ -176,7 +178,7 @@ theorem set_le_closure (U : set X) : U ⊆ closure U :=
 λ x hx, mem_sInter.1 $ λ U' hU', hU'.2 hx
 
 /- If A ⊆ B then the closure of A is smaller than the closure of B -/
-theorem closure_mono {U V : set X} (hle : U ⊆ V) :
+theorem closure_mono' {U V : set X} (hle : U ⊆ V) :
 closure U ⊆ closure V := λ x hx A hA, hx _ ⟨hA.1, subset.trans hle hA.2⟩
 
 /- The closure of a closed set is itself-/
@@ -198,7 +200,11 @@ begin
   exact hU'₁ ▸ hU'₀
 end
 
+end closed
+
 namespace interior
+
+open closed
 
 /- The interior of a set equals the set of its interior points -/
 theorem interior_eq_interior_points {U : set X} :
@@ -234,7 +240,7 @@ interior U ⊆ interior V :=
 begin 
   repeat { rw [interior_eq_compl_closure_compl] },
   rw [compl_subset_comm, compl_compl],
-  exact closure_mono (compl_subset_compl.mpr hle)
+  exact closure_mono' (compl_subset_compl.mpr hle)
 end
 
 /- The interior of an open set is itself -/
@@ -264,4 +270,44 @@ by rw [interior_eq_compl_closure_compl, subset_compl_comm];
 
 end interior
 
-end closed
+namespace mapping
+
+variables {U : set X} {V : set Y} {f : X → Y}
+
+/- A mapping f : X → Y is continuous iff f⁻¹(U) is closed whenever 
+U is closed-/
+lemma preimage_closed_of_closed (h : is_closed V)
+(hcontin : is_continuous f) : is_closed (f ⁻¹' V) :=
+by unfold is_closed; rw ←preimage_compl; exact hcontin _ h
+
+lemma contin_of_preimage_closed_of_closed 
+(h : ∀ V, is_closed V → is_closed (f ⁻¹' V)) : is_continuous f :=
+begin
+  intros U hU,
+  suffices : is_closed (- (f ⁻¹' U)),
+    { unfold is_closed at this, rwa compl_compl at this },
+  rw ←preimage_compl,
+  refine h _ _, unfold is_closed, rwa compl_compl
+end
+
+theorem contin_iff_preimage_closed_of_closed : is_continuous f ↔ 
+∀ V, is_closed V → is_closed (f ⁻¹' V) :=
+⟨λ h V hV, preimage_closed_of_closed hV h, 
+  λ h, contin_of_preimage_closed_of_closed h⟩
+
+open closed
+
+/- A mapping f : X → Y is continuous imples f(closure A) ⊆ closure f(A) -/
+theorem map_closure_le_closure_map (hcontin : is_continuous f) :
+f '' closure U ⊆ closure (f '' U) := 
+begin
+  rw contin_iff_preimage_closed_of_closed at hcontin,
+  suffices : closure U ⊆ f ⁻¹' closure (f '' U),
+    intros _ hy,
+    rcases (mem_image _ _ _).1 hy with ⟨_, hx₀, hx₁⟩,
+    rw ←hx₁, exact mem_preimage.1 (this hx₀),
+  exact closure_is_min (λ _ hu, mem_preimage.2 (set_le_closure _ (mem_image_of_mem f hu)))
+   (hcontin _ (closure_is_closed $ f '' U)),
+end
+
+end mapping
