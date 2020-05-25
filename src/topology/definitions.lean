@@ -2,19 +2,8 @@ import topology.basic
 
 namespace definitions
 
-variables {X : Type*} 
-
-/- We define the notion of order on topologies (coarser, finer).
-Let 𝒯₁, 𝒯₂ be topologies on the same set X. If 𝒯₁ ⊆ 𝒯₂ then 𝒯₁ is 
-said to be coarser than 𝒯₂ and 𝒯₂ is said to be finer than 𝒯₁ -/
-
--- Does this even make any sense?
-/-
-instance : has_le (topological_space X) := 
-{ le := λ 𝒯₁ 𝒯₂, ∀ s : set X, 𝒯₁.is_open s → 𝒯₂.is_open s }
--/
-
-variables {Y : Type*} [topological_space X] [topological_space Y]
+variables {X : Type*} [topological_space X] 
+variables {Y : Type*} [topological_space Y]
 
 def is_continuous (f : X → Y) : Prop :=
   ∀ U : set Y, is_open U → is_open (f ⁻¹' U)
@@ -45,6 +34,18 @@ set Nₓ, x ∈ Nₓ and Nₓ ⊆ U -/
 def interior_points (U : set X) :=
   {x : X | ∃ (U' : set X) (h₀ : is_open U') (h₁ : U' ⊆ U), x ∈ U'}
 
-attribute [reducible] limit_points interior_points
+/- We consider convergence in topological spaces. We say as sequence 
+xₙ : ℕ → X converges to some x ∈ X iff. for all open U containing x, 
+there exists some N ∈ ℕ, for all n ≥ N, xₙ ∈ U -/
+def converge_to (x : ℕ → X) (l : X) := 
+  ∀ (U : set X) (h : is_open U), l ∈ U → ∃ N : ℕ, ∀ n ≥ N, x n ∈ U
+
+/- A topological space is called Hausdorff iff. for all x, y in X, 
+there exists U, V ⊆ X, such that x ∈ U, y ∈ V and U V are disjoint -/
+def is_Hausdorff (X : Type*) [topological_space X] := 
+∀ x y : X, x ≠ y → ∃ (U V : set X) (hU : is_open U) 
+  (hV : is_open V) (hx : x ∈ U) (hy : y ∈ V), U ∩ V = ∅
+
+attribute [reducible] limit_points interior_points is_Hausdorff
 
 end definitions
