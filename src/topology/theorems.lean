@@ -311,3 +311,17 @@ begin
 end
 
 end mapping
+
+namespace Hausdorff_spaces
+
+/- Sequence in a topological space have unique limits if that topological 
+space is Hausdorff (the inverse is in general not true) -/
+theorem unique_limit_of_Hausdorff {x : ℕ → X} {l k : X} (h : is_Hausdorff X)
+(hl : converge_to x l) (hk : converge_to x k) : l = k :=
+classical.by_contradiction $ λ hne,
+  let ⟨U, V, hU, hV, hlU, hkV, hdisj⟩ := h l k hne in
+  let ⟨N₁, hN₁⟩ := hl _ hU hlU in let ⟨N₂, hN₂⟩ := hk _ hV hkV in
+not_mem_empty (x (max N₁ N₂)) 
+  (hdisj ▸ ⟨hN₁ _ (le_max_left N₁ N₂), hN₂ _ (le_max_right N₁ N₂)⟩)
+
+end Hausdorff_spaces
