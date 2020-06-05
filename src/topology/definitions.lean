@@ -2,6 +2,8 @@ import topology.basic
 
 namespace definitions
 
+open set
+
 variables {X : Type*} [topological_space X] 
 variables {Y : Type*} [topological_space Y]
 
@@ -39,6 +41,22 @@ xₙ : ℕ → X converges to some x ∈ X iff. for all open U containing x,
 there exists some N ∈ ℕ, for all n ≥ N, xₙ ∈ U -/
 def converge_to (x : ℕ → X) (l : X) := 
   ∀ (U : set X) (h : is_open U), l ∈ U → ∃ N : ℕ, ∀ n ≥ N, x n ∈ U
+
+/- Creating a coercion between the a set of A to a set of X 
+where A ⊆ X. -/
+instance {A : set X} : has_coe (set A) (set X) :=
+⟨λ S, subtype.val '' S⟩
+
+instance {A : set X} : topological_space A := 
+{ is_open := λ U, ∃ (V : set X) (H : is_open V), A ∩ V = U,
+  is_open_univ := sorry,
+  is_open_inter := sorry,
+  is_open_sUnion := sorry }
+
+/- We define the natural mapping between a subspace to the whole space
+(inclusion map) -/
+def inclusion_map (A : set X) : A → X := λ x, x
+notation `𝒾 ` A := inclusion_map A
 
 /- A topological space is called Hausdorff iff. for all x, y in X, 
 there exists U, V ⊆ X, such that x ∈ U, y ∈ V and U V are disjoint -/

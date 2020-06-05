@@ -312,6 +312,58 @@ end
 
 end mapping
 
+namespace subspaces
+
+open mapping
+
+/- The inclusion map is continuous -/
+theorem inclusion_is_continuous (A : set X) : is_continuous 𝒾 A :=
+begin
+  intros U hU, refine ⟨U, hU, _⟩,
+  ext, split; intro hx,
+    { rw preimage, use x, 
+      exact hx.1, refine ⟨hx.2, rfl⟩ },
+    { rcases hx with ⟨x', hx'₀, hx'₁⟩,
+      rw ←hx'₁, split,
+        exact subtype.val_prop x',
+        simp at hx'₀, assumption }
+end
+
+/- (Universal Property) -/
+lemma comp_inclusion_is_contin_of_is_contin {A : set X} {f : Z → A}
+(h : is_continuous f) : is_continuous $ (𝒾 A) ∘ f := 
+comp_contin h (inclusion_is_continuous A)
+
+-- There has to be a better way to deal with type conversions :/
+theorem is_contin_of_comp_inclusion_is_contin {A : set X} {f : Z → A}
+(h : is_continuous $ (𝒾 A) ∘ f) : is_continuous f := 
+begin
+  intros U hU, rcases hU with ⟨V, hV₀, hV₁⟩,
+  suffices : f ⁻¹' U = (𝒾 A) ∘ f ⁻¹' V,
+    rw this, exact h _ hV₀,
+  ext, split; intro hx,
+    { show ↑(f x) ∈ V, suffices : ↑U ⊆ V,
+        apply this, exact mem_image_of_mem coe hx,
+      rw ←hV₁, exact inter_subset_right A V },
+    { rw mem_preimage at *,
+      replace hx : ↑(f x) ∈ V, exact hx,
+      have : ↑(f x) ∈ ↑U,
+        rw ←hV₁, exact mem_inter (subtype.val_prop' _) hx,
+      cases f x with fx₀ _,
+      rcases this with ⟨y, hy₀, hy₁⟩, 
+      convert hy₀, cases y, 
+      suffices : fx₀ = y_val, simp only [subtype.mk_eq_mk], assumption,
+      simp only [subtype.coe_mk] at hy₁, rw hy₁
+    }
+end
+
+theorem is_contin_iff_comp_inclusion_is_contin {A : set X} {f : Z → A} :
+is_continuous f ↔ (is_continuous $ (𝒾 A) ∘ f) := 
+⟨ λ h, comp_inclusion_is_contin_of_is_contin h, 
+  λ h, is_contin_of_comp_inclusion_is_contin h ⟩
+
+end subspaces
+
 namespace Hausdorff_spaces
 
 /- Sequence in a topological space have unique limits if that topological 
