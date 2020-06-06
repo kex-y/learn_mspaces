@@ -47,6 +47,8 @@ where A ⊆ X. -/
 instance {A : set X} : has_coe (set A) (set X) :=
 ⟨λ S, subtype.val '' S⟩
 
+/- We create the natrual definition of the subspace of a topological 
+space with the subspace topology -/
 instance {A : set X} : topological_space A := 
 { is_open := λ U, ∃ (V : set X) (H : is_open V), A ∩ V = U,
   is_open_univ := sorry,

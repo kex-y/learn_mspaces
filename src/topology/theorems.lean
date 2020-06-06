@@ -25,7 +25,7 @@ variables {Z : Type*} [topological_space Z]
 /- We allow excluded middle since we are not computer scientists -/
 local attribute [instance] classical.prop_decidable
 
-open definitions set
+open definitions set function
 
 /- We'll prove the axiom left out in Lean's version - ∅ is open -/
 theorem empty_is_open : is_open (∅ : set X) :=
@@ -375,5 +375,41 @@ classical.by_contradiction $ λ hne,
   let ⟨N₁, hN₁⟩ := hl _ hU hlU in let ⟨N₂, hN₂⟩ := hk _ hV hkV in
 not_mem_empty (x (max N₁ N₂)) 
   (hdisj ▸ ⟨hN₁ _ (le_max_left N₁ N₂), hN₂ _ (le_max_right N₁ N₂)⟩)
+
+/- If Y is Hausdorff and there exists a continuous injective map from 
+X to Y then X is also Hausdorff -/
+theorem Hausdorff_of_continuous_inj (f : X → Y) (h : is_Hausdorff Y)
+(hcontin : is_continuous f) (hinj : injective f) : is_Hausdorff X :=
+begin
+  intros x y hxy,
+  rcases h _ _ (λ hf, hxy (hinj hf)) with ⟨U, V, hU₀, hV₀, hU₁, hV₁, hdisj⟩,
+  refine ⟨f ⁻¹' U, f ⁻¹' V, hcontin U hU₀, hcontin V hV₀, hU₁, hV₁, _⟩,
+  ext z, split; intro hz,
+    { cases hz with hz₀ hz₁,
+      rw mem_preimage at *,
+      exfalso, refine @not_mem_empty Y (f z) _,
+      rw ←hdisj, exact ⟨hz₀, hz₁⟩ },
+    { exfalso, exact (not_mem_empty z) hz },
+end
+
+/- A subspace of a Hausdorff space is Hausdorff -/
+theorem subspace_Hausdorff {A : set X} (h : is_Hausdorff X) : is_Hausdorff A := 
+Hausdorff_of_continuous_inj (𝒾 A) h (subspaces.inclusion_is_continuous A) 
+  (λ _ _ hxy, subtype.eq hxy)
+
+/- If X ≃* Y, then X is Hausdorff ⇔ Y is Hausdorff -/
+lemma Hausdorff_of_equiv (h : is_Hausdorff Y) (hequiv : X ≃* Y) : 
+is_Hausdorff X :=
+Hausdorff_of_continuous_inj hequiv.to_fun h hequiv.contin (equiv.injective hequiv.1)
+
+lemma equiv_symm (hequiv : X ≃* Y) : Y ≃* X := 
+{ contin := hequiv.inv_contin,
+  inv_contin := hequiv.contin,
+  .. equiv.symm hequiv.1 }
+
+theorem Hausdorff_equiv (hequiv : X ≃* Y) : 
+is_Hausdorff X ↔ is_Hausdorff Y :=
+iff.intro (λ h, Hausdorff_of_equiv h (equiv_symm hequiv)) 
+  (λ h, Hausdorff_of_equiv h hequiv)
 
 end Hausdorff_spaces
