@@ -295,12 +295,19 @@ theorem Union_open_is_open {α} {U : α → set X}
 	end
 	⟩
 
-/- The union of finitely many closed sets is open -/
-theorem union_finite_closed_is_open {I : set α} {U : α → set X} (hI : finite I)
+/- The union of finitely many closed sets is closed -/
+theorem union_closed_is_closed {U V : set X} (hU : is_closed' U) (hV : is_closed' V) : 
+is_closed' (U ∪ V) :=
+begin
+	unfold is_closed' at *,
+	rw compl_union, exact inter_open_is_open hU hV
+end
+
+theorem union_finite_closed_is_closed {I : set α} {U : α → set X} (hI : finite I)
 (h : ∀ i ∈ I, is_closed' $ U i) : (is_closed' $ ⋃ i ∈ I, U i) := 
 begin
 	unfold is_closed' at *,
-	rw compl_bUnion, from inter_finite_open_is_open hI h,
+	rw compl_bUnion, from inter_finite_open_is_open hI h
 end
 
 /- The empty set is closed-/
@@ -364,7 +371,7 @@ begin
   refine mem_Inter.1 this hT
 end
 
-/- Sequences within a set and it's limit points  that converges converges to itself-/
+/- Sequences within a set and it's limit points that converges converges to itself-/
 lemma limit_in_with_limit_points {a : ℕ → X} {l} {S : set X}
 (h : ∀ n, a n ∈ S ∪ limit_points S) (h₁ : a ⇒ l) : 
 l ∈ S ∪ limit_points S := 
