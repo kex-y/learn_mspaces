@@ -5,6 +5,8 @@ variables {Y : Type*} [metric_space Y]
 
 namespace definitions
 
+open set
+
 /- Definition of continuity on metric spaces -/
 def is_continuous_at (f : X → Y) (a : X) := 
   ∀ ε > 0, ∃ δ > 0, ∀ x : X, dist x a < δ → dist (f x) (f a) < ε
@@ -39,13 +41,21 @@ def interior' (S : set X) := ⋃ (T : set X) (h₀ : T ⊆ S) (h₀ : is_open' T
 /- Definition of boundary -/
 def boundary (S : set X) := closure' S \ interior' S
 
-attribute [reducible] open_ball limit_points closure' interior' boundary
+/- Connectedness and Path-connectedness -/
+def is_disconnected (X : Type*) [metric_space X] := 
+  ∃ (U V : set X) (hU₀ : is_open' U) (hV₀ : is_open' V) 
+  (hU₁ : U ≠ ∅) (hV₁ : V ≠ ∅), U ∩ V = ∅ ∧ U ∪ V = univ
+
+def is_connected' (X : Type*) [metric_space X] := ¬ is_disconnected X
+
+attribute [reducible] open_ball limit_points closure' interior' boundary is_disconnected 
+  is_connected
 
 def converge_to (s : ℕ → X) (x : X) := 
 ∀ (ε : ℝ) (hε : 0 < ε), ∃ N : ℕ, ∀ (n : ℕ) (hn : N ≤ n), dist x (s n) < ε 
 notation s ` ⇒ ` x := converge_to s x
 
-def cauchy (s : ℕ → X) :=
-∀ (ε : ℝ) (hε : 0 < ε), ∃ N : ℕ, ∀ (n m : ℕ) (hn : N ≤ n) (hm : N ≤ m), dist (s n) (s m) < ε 
+def cauchy (s : ℕ → X) := ∀ (ε : ℝ) (hε : 0 < ε), 
+  ∃ N : ℕ, ∀ (n m : ℕ) (hn : N ≤ n) (hm : N ≤ m), dist (s n) (s m) < ε 
 
 end definitions

@@ -17,6 +17,7 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 -/
 
 noncomputable theory
+local attribute [instance] classical.prop_decidable
 
 open set definitions
 
@@ -565,3 +566,49 @@ by linarith [hN₀ N (le_max_left _ _),
   show dist (s N) x₁ < ε / 2, by rw dist_comm; from hN₁ N (le_max_right _ _)]
 
 end convergence
+
+namespace connected
+
+/- We have some equivalent definitions for connected sets
+- X is connected
+↔ ∃ f : X → {0, 1}, f is continuous then f is a constant function
+↔ the only sets that are both open and closed are X and ∅ -/
+
+/- Since working with the set {0, 1} is a hassle, we will define the 
+inductive type binary containing terms: val_a and val_b -/
+inductive binary : Type* | val_a : binary | val_b : binary
+
+instance metric_space_of_zero_one : metric_space binary := sorry
+
+lemma notempty {S : set α} (h : S ≠ ∅) : ∃ s : α, s ∈ S := 
+begin
+	by_contra hs, push_neg at hs,
+  exact (push_neg.not_eq _ _).1 h (set.eq_empty_iff_forall_not_mem.2 hs)
+end
+
+lemma connected_of_const_func (h : ∀ f : X → binary, is_continuous f → 
+  (f = λ _, binary.val_a) ∨ (f = λ _, binary.val_b)) : is_connected' X :=
+begin
+	rintro ⟨U, V, hU₀, hV₀, hU₁, hV₁, hdisj, hcover⟩,
+	let f : X → binary := 
+		λ x, if (x ∈ U) then binary.val_a else binary.val_b,
+	have := h f _,
+	cases notempty hU₁ with u hu,	cases notempty hV₁ with v hv,
+	apply (show binary.val_a ≠ binary.val_b, by finish),
+	cases this; rw function.funext_iff at this, 
+		{ rw ←(this v), 
+			show (λ (x : X), ite (x ∈ U) binary.val_a binary.val_b) v = binary.val_b,
+			simp, split_ifs with hvU, 
+			exact eq_empty_iff_forall_not_mem.1 hdisj v ⟨hvU, hv⟩, refl },
+		{ rw ←(this u),
+			show binary.val_a = (λ (x : X), ite (x ∈ U) binary.val_a binary.val_b) u,
+			simp, split_ifs, refl },
+	intros x ε hε,
+	have := mem_univ x, rw ←hcover at this, cases this,
+		{	rcases hU₀ _ this with ⟨δ, hδ₀, hδ₁⟩,
+			refine ⟨δ, hδ₀, λ y hy, _⟩,
+			convert hε, sorry },
+		sorry,
+end
+
+end connected
