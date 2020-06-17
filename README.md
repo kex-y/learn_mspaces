@@ -2,7 +2,7 @@
 
 This is a personal project of leaning topology and metric spaces by formalising them in Lean.
 
-Based on the [lecture notes](https://union.ic.ac.uk/rcsu/mathsoc/files/M2PM5-16.pdf) of M2PM5 (Metric Spaces & Topology) (requires Imperial account) from 2016.
+Based on the [lecture notes](https://union.ic.ac.uk/rcsu/mathsoc/files/M2PM5-16.pdf) (requires Imperial account) of M2PM5 (Metric Spaces & Topology) from 2016.
 
 Currently I have formalised: 
 - Metric Spaces
