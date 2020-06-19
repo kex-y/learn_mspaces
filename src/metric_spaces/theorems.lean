@@ -544,6 +544,7 @@ end open_closed_sets
 
 namespace convergence
 
+variables {Y : Type*} [metric_space Y]
 variables {s : ℕ → X}
 
 lemma dist_zero {x₀ x₁ : X} 
@@ -564,6 +565,18 @@ x₀ = x₁ := dist_zero $ λ ε hε,
   lt_of_le_of_lt (dist_triangle x₀ (s N) x₁) $
 by linarith [hN₀ N (le_max_left _ _), 
   show dist (s N) x₁ < ε / 2, by rw dist_comm; from hN₁ N (le_max_right _ _)]
+
+/- Sequential continuity -/
+theorem seq_contin {x : X} {f : X → Y} (hf : is_continuous f)
+(hs : s ⇒ x) : (λ n, f (s n)) ⇒ f x := λ ε hε,
+begin
+  rcases hf x ε hε with ⟨δ, hδ₀, hδ₁⟩,
+  rcases hs δ hδ₀ with ⟨N, hN⟩,
+  refine ⟨N, λ n hn, _⟩,
+  simp only [],
+  rw dist_comm, refine hδ₁ _ _,
+  rw dist_comm, refine hN _ hn
+end
 
 end convergence
 
@@ -668,5 +681,61 @@ begin
       simp, split_ifs, refl },
   exact aux_fun_is_continuous hU₀ hV₀ hU₁ hV₁ hdisj hcover
 end
+
+private lemma binary_singleton_is_open (x : binary) : 
+  is_open' ({ x } : set binary) := 
+begin
+  intros y hy, 
+  refine ⟨1, (by norm_num), _⟩,
+  rw mem_singleton_iff.1 hy, intros z hz,
+  simp [dist, binary_metric] at hz,
+  split_ifs at hz,
+    { exact h ▸ mem_singleton _ },
+    { linarith }
+end
+
+private lemma not_constant_a {f : X → binary} : 
+  (¬ f = λ x, binary.val_a) → ∃ x, f x = binary.val_b := λ hf,
+begin
+  by_contra h, push_neg at h,
+  apply hf, ext, have := h x, cases f x; finish,
+end
+
+private lemma not_constant_b {f : X → binary} : 
+  (¬ f = λ x, binary.val_b) → ∃ x, f x = binary.val_a := λ hf,
+begin
+  by_contra h, push_neg at h,
+  apply hf, ext, have := h x, cases f x; finish,
+end
+
+lemma const_func_of_connected (h : is_connected' X) : 
+∀ f : X → binary, is_continuous f → 
+  (f = λ _, binary.val_a) ∨ (f = λ _, binary.val_b) :=
+begin
+  by_contra hf, push_neg at hf,
+  rcases hf with ⟨f, hf₀, hf₁, hf₂⟩, apply h, 
+  refine ⟨f ⁻¹' { binary.val_a }, f ⁻¹' { binary.val_b }, _, _, _⟩;
+  try { exact open_closed_sets.contin_to_preimg_open _ 
+    (binary_singleton_is_open _) hf₀ },
+  cases not_constant_a hf₁ with b hb',
+  cases not_constant_b hf₂ with a ha',
+  refine ⟨_, _, _, _⟩,
+  { intro ha, apply not_mem_empty a, rwa ←ha },
+  { intro hb, apply not_mem_empty b, rwa ←hb },
+  { by_contra hpre, cases notempty hpre with x hx,
+    apply (show binary.val_a ≠ binary.val_b, by finish),
+    rw ←(mem_singleton_iff.1 hx.1),
+    exact mem_singleton_iff.1 hx.2 },
+  ext, split; intro _,
+    { exact mem_univ _ },
+    { suffices : f x = binary.val_a ∨ f x = binary.val_b,
+        cases this, left, exact this, right, exact this,
+      cases f x; finish
+    }  
+end
+
+theorem connected_iff_const_func : is_connected' X ↔ ∀ f : X → binary, is_continuous f → 
+  (f = λ _, binary.val_a) ∨ (f = λ _, binary.val_b) :=
+⟨λ h , const_func_of_connected h, λ h, connected_of_const_func h⟩
 
 end connected
