@@ -142,7 +142,7 @@ begin
   by_contra hf, push_neg at hf,
   rcases hf with ⟨f, hf₀, hf₁, hf₂⟩, apply h, 
   refine ⟨f ⁻¹' { binary.val_a }, f ⁻¹' { binary.val_b }, _, _, _⟩;
-  try { exact open_closed_sets.contin_to_preimg_open _ 
+  try { exact open_closed.contin_to_preimg_open _ 
     (binary_singleton_is_open _) hf₀ },
   cases not_constant_a hf₁ with b hb',
   cases not_constant_b hf₂ with a ha',
@@ -161,8 +161,57 @@ begin
     }  
 end
 
-theorem connected_iff_const_func : is_connected' X ↔ ∀ f : X → binary, is_continuous f → 
-  (f = λ _, binary.val_a) ∨ (f = λ _, binary.val_b) :=
+theorem connected_iff_const_func : is_connected' X ↔ ∀ f : X → binary, 
+  is_continuous f → (f = λ _, binary.val_a) ∨ (f = λ _, binary.val_b) :=
 ⟨λ h , const_func_of_connected h, λ h, connected_of_const_func h⟩
+
+/- Furthermore, X is connected is equivalent to the only open sets in X are 
+univ and ∅ -/
+lemma compl_nempty_of_not_univ {S : set X} : ¬S = univ → -S ≠ ∅ := 
+λ h hn, h $ by rw ← compl_univ at hn; exact compl_inj_iff.mp hn
+
+lemma eq_union_sub {S T : set X} (h : S = S ∪ T) : T ⊆ S := 
+by intros t ht; rw h; right; assumption
+
+lemma sub_disj_eq_empty {S T : set X} (h : T ⊆ S) (hinter : S ∩ T = ∅) : T = ∅ :=
+by rw ←hinter; ext; exact ⟨λ hx, ⟨h hx, hx⟩, λ hx, hx.2 ⟩
+
+lemma compl_eq_disj_cover {S T : set X} 
+(hinter : S ∩ T = ∅) (hcover : S ∪ T = univ) : -S = T :=
+begin
+  ext, split; intro hx,
+    { have := mem_univ x, 
+      rw ←hcover at this,
+      cases this; finish },
+    { intro hS,
+      rw [←mem_empty_eq x, ←hinter],
+      exact ⟨hS, hx⟩ }
+end
+
+lemma open_and_closed_of_connected (h : is_connected' X) 
+(S : set X) (hS : is_open' S ∧ is_closed' S) : S = ∅ ∨ S = univ :=
+begin
+  cases hS with hS₀ hS₁,
+  by_contra hp, push_neg at hp, apply h,
+  cases notempty hp.1 with x hx,
+  exact ⟨S, -S, hS₀, hS₁, hp.1, compl_nempty_of_not_univ hp.2, by finish⟩
+end
+
+lemma connected_of_open_and_closed 
+(h : ∀ S : set X, is_open' S ∧ is_closed' S → S = ∅ ∨ S = univ) :
+is_connected' X :=
+begin
+  rintro ⟨U, V, hU₀, hV₀, hU₁, hV₁, hinter, hcover⟩,
+  cases h U ⟨hU₀, _⟩ with hempt huniv,
+    { contradiction },
+    { rw ←hcover at huniv,
+      refine hV₁ (sub_disj_eq_empty (eq_union_sub huniv) hinter) },
+  unfold is_closed',
+  rwa compl_eq_disj_cover hinter hcover
+end
+
+theorem connected_iff_open_and_closed : is_connected' X ↔ 
+  ∀ S : set X, is_open' S ∧ is_closed' S → S = ∅ ∨ S = univ :=
+⟨λ h, open_and_closed_of_connected h, λ h, connected_of_open_and_closed h⟩
 
 end connected
