@@ -248,6 +248,18 @@ iff.intro
   (preimg_open_to_contin)
   (λ hcontin U hopen, contin_to_preimg_open U hopen hcontin)
 
+/- A continuous function is continuous when restricted to a subspace -/
+theorem restricted_contin_of_contin (h: is_continuous f) (U : set X) :
+is_continuous $ restrict f U := 
+begin
+  refine preimg_open_to_contin (λ V hV s hs, _),
+  rcases hV (f s) hs with ⟨ε, hε₀, hε₁⟩,
+  rcases h s ε hε₀ with ⟨δ, hδ₀, hδ₁⟩,
+  refine ⟨δ, hδ₀, λ x hx, hε₁ $ _⟩,
+  rw [mem_set_of_eq, dist_comm],
+  refine hδ₁ x _, rw dist_comm, exact hx
+end
+
 /- The intersect of finitely many open sets is open -/
 lemma inter_open_is_open  {U₀ U₁ : set X}
 (h₀ : is_open' U₀) (h₁ : is_open' U₁) : is_open' (U₀ ∩ U₁) := λ s ⟨hs₀, hs₁⟩,
