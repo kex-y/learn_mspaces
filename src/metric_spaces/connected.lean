@@ -6,6 +6,7 @@ local attribute [instance] classical.prop_decidable
 open set definitions
 
 variables {α X : Type*} [metric_space X]
+variables {Y : Type*}   [metric_space Y]
 
 namespace connected
 
@@ -46,7 +47,7 @@ begin
   norm_num
 end
 
-instance metric_space_of_zero_one : metric_space binary := 
+instance metric_space_of_binary : metric_space binary := 
 { dist := binary_metric, 
   dist_self := binary_dist_self,
   eq_of_dist_eq_zero := binary_eq_of_dist_eq_zero,
@@ -213,5 +214,47 @@ end
 theorem connected_iff_open_and_closed : is_connected' X ↔ 
   ∀ S : set X, is_open' S ∧ is_closed' S → S = ∅ ∨ S = univ :=
 ⟨λ h, open_and_closed_of_connected h, λ h, connected_of_open_and_closed h⟩
+
+/- Consider what it means for a set to be connected intuitively:
+if we have a bunch of connected sets and we "connect" them by letting them 
+have some over lap, we expect the resulting set to also be connected.
+
+Written out mathematically, given {S i : i ∈ I} a collection of connected sets 
+of X such that ⋂ (i ∈ I), S i ≠ ∅, ⋃ (i ∈ I), S i is connected.
+
+(This is going to be difficult to prove in Lean since we'll have to work with 
+subspaces :/ ) 
+theorem Union_of_ndisj_connected {α} 
+  {U : α → set X} (hc : ∀ i, is_connected' $ U i) 
+  (hndisj : (⋂ i, U i) ≠ ∅) : is_connected' $ ⋃ i, U i :=
+begin
+  rw connected_iff_const_func,
+  intros f hf, sorry
+end -/
+
+lemma image_factorization_contin {U : set X} {f : X → Y} 
+  (hf : is_continuous f) : is_continuous $ image_factorization f U :=
+begin
+  unfold image_factorization,
+  intros u ε hε,
+  rcases hf u.1 ε hε with ⟨δ, hδ₀, hδ₁⟩,
+  exact ⟨δ, hδ₀, λ x hx, by simp; exact hδ₁ x.1 hx⟩
+end
+
+/- The image of a connected space is connected -/
+theorem image_of_connected_is_connected {U : set X} {f : X → Y}
+  (hU : is_connected' U) (hf : is_continuous f) : is_connected' $ f '' U :=
+begin
+  rw connected_iff_const_func, intros g hg,
+  rw connected_iff_const_func at hU,
+  have := hU (g ∘ image_factorization f U) (continuity.comp_continuous _ hg),
+  cases this, left, swap, right,
+  all_goals { try
+    { ext y, rcases (mem_image f U y.1).1 y.2 with ⟨x, hx₀, hx₁⟩,
+      rw (show g y = (g ∘ image_factorization f U) ⟨x, hx₀⟩, 
+          by simp [function.comp, image_factorization, hx₁]),
+      simp [this] } },
+  exact image_factorization_contin hf
+end
 
 end connected
