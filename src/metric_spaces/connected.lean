@@ -257,54 +257,40 @@ begin
 end
 
 /- ARGGG! This is messy :( -/
-theorem between_closure_connected_of_connected {U : set X} (hU : is_connected' U) : 
-  ∀ V, U ⊆ V ∧ V ⊆ closure' U → is_connected' V :=
+theorem between_closure_is_connected_of_connected {U : set X} 
+  (hU : is_connected' U) : ∀ V, U ⊆ V ∧ V ⊆ closure' U → is_connected' V :=
 begin
   rintros V ⟨hV₀, hV₁⟩,
   rw [connected_iff_const_func] at *,
   rw open_closed.closure'.with_limit_points_is_closure U at hV₁,
   intros f hf, let g : U → binary := λ u, f ⟨u.1, hV₀ u.2⟩,
   cases hU g (open_closed.subset_contin_of_contin hV₀ f g hf rfl),
-  left, ext, cases hV₁ x.2 with hinU hlp,
-    { rw [show binary.val_a = g ⟨x.1, hinU⟩, by simp [h]], 
+  left, swap, right,
+  all_goals { ext, cases hV₁ x.2 with hinU hlp,
+    { try { rw [show binary.val_a = g ⟨x.1, hinU⟩, by simp [h]] 
+      <|> rw [show binary.val_b = g ⟨x.1, hinU⟩, by simp [h]] }, 
       show f x = (λ (u : U), f ⟨u.1, hV₀ u.2⟩) ⟨x.val, hinU⟩, simp },
     { choose s h₀ h₁ h₂ using λ n : ℕ, hlp (1 / (n + 1) : ℝ) nat.one_div_pos_of_nat,
-      have ha : (λ n, g $ ⟨s n, h₀ n⟩) ⇒ f x, 
-        { intros ε' hε', 
-          rcases hf x ε' hε' with ⟨δ, hδ₀, hδ₁⟩,
-          cases exists_nat_gt (1 / δ) with N hN,
-          refine ⟨N, λ n hn, _⟩, rw dist_comm,
-          refine hδ₁ ⟨s n, _⟩ (lt_trans _ ((one_div_lt _ hδ₀).2 hN)),
-          rw dist_comm, refine lt_of_lt_of_le (h₂ n) _, 
-          rw [one_div_eq_inv, one_div_eq_inv, inv_le, inv_inv'], 
-          norm_cast, exact le_add_right hn, 
-          norm_cast, exact nat.succ_pos n, 
-          rw inv_pos, all_goals 
-            { refine lt_trans (inv_pos.2 hδ₀) _, 
-            rw ←one_div_eq_inv, exact hN } },
-      have hb : (λ n, g $ ⟨s n, h₀ n⟩) ⇒ binary.val_a, 
-        { rw h, simp [convergence.const_converge] },
-      exact convergence.limit_unique _ _ ha hb },
-  right, ext, cases hV₁ x.2 with hinU hlp,
-    { rw [show binary.val_b = g ⟨x.1, hinU⟩, by simp [h]], 
-      show f x = (λ (u : U), f ⟨u.1, hV₀ u.2⟩) ⟨x.val, hinU⟩, simp },
-    { choose s h₀ h₁ h₂ using λ n : ℕ, hlp (1 / (n + 1) : ℝ) nat.one_div_pos_of_nat,
-      have ha : (λ n, g $ ⟨s n, h₀ n⟩) ⇒ f x, 
-        { intros ε' hε', 
-          rcases hf x ε' hε' with ⟨δ, hδ₀, hδ₁⟩,
-          cases exists_nat_gt (1 / δ) with N hN,
-          refine ⟨N, λ n hn, _⟩, rw dist_comm,
-          refine hδ₁ ⟨s n, _⟩ (lt_trans _ ((one_div_lt _ hδ₀).2 hN)),
-          rw dist_comm, refine lt_of_lt_of_le (h₂ n) _, 
-          rw [one_div_eq_inv, one_div_eq_inv, inv_le, inv_inv'], 
-          norm_cast, exact le_add_right hn, 
-          norm_cast, exact nat.succ_pos n, 
-          rw inv_pos, all_goals 
-            { refine lt_trans (inv_pos.2 hδ₀) _, 
-            rw ←one_div_eq_inv, exact hN } },
-      have hb : (λ n, g $ ⟨s n, h₀ n⟩) ⇒ binary.val_b, 
-        { rw h, simp [convergence.const_converge] },
-      exact convergence.limit_unique _ _ ha hb }
+      have ha : (λ n, g $ ⟨s n, h₀ n⟩) ⇒ f x := λ ε' hε', 
+        by { rcases hf x ε' hε' with ⟨δ, hδ₀, hδ₁⟩,
+            cases exists_nat_gt (1 / δ) with N hN,
+            refine ⟨N, λ n hn, _⟩, rw dist_comm,
+            refine hδ₁ ⟨s n, _⟩ (lt_trans _ ((one_div_lt _ hδ₀).2 hN)),
+            rw dist_comm, refine lt_of_lt_of_le (h₂ n) _, 
+            rw [one_div_eq_inv, one_div_eq_inv, inv_le, inv_inv'], 
+            norm_cast, exact le_add_right hn, 
+            norm_cast, exact nat.succ_pos n, 
+            rw inv_pos, all_goals 
+              { refine lt_trans (inv_pos.2 hδ₀) _, 
+              rw ←one_div_eq_inv, exact hN } },
+      refine convergence.limit_unique _ _ ha _,
+      rw h, simp [convergence.const_converge] } }
 end
+
+/- A direct corollary is that the closure of a connected set is connected -/
+theorem closure_is_connected_of_connected {U : set X} 
+  (hU : is_connected' U) : is_connected' $ closure' U := 
+between_closure_is_connected_of_connected hU _ 
+  ⟨open_closed.closure'.subset_closure', subset.refl $ closure' U⟩
 
 end connected
