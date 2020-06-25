@@ -249,7 +249,7 @@ iff.intro
   (λ hcontin U hopen, contin_to_preimg_open U hopen hcontin)
 
 /- A continuous function is continuous when restricted to a subspace -/
-theorem restricted_contin_of_contin (h: is_continuous f) (U : set X) :
+theorem restricted_contin_of_contin (h : is_continuous f) (U : set X) :
 is_continuous $ restrict f U := 
 begin
   refine preimg_open_to_contin (λ V hV s hs, _),
@@ -258,6 +258,19 @@ begin
   refine ⟨δ, hδ₀, λ x hx, hε₁ $ _⟩,
   rw [mem_set_of_eq, dist_comm],
   refine hδ₁ x _, rw dist_comm, exact hx
+end
+
+/- An similar lemma for subsets -/
+theorem subset_contin_of_contin {S T : set X} (hsub : S ⊆ T) 
+(f : T → Y) (g : S → Y) (hf : is_continuous f) (hg : g = λ s, f ⟨s.1, hsub s.2⟩) : 
+is_continuous g :=
+begin
+  refine preimg_open_to_contin (λ V hV s hs, _),
+  rcases hV (g s) hs with ⟨ε, hε₀, hε₁⟩,
+  rcases hf ⟨s.1, hsub s.2⟩ ε hε₀ with ⟨δ, hδ₀, hδ₁⟩,
+  refine ⟨δ, hδ₀, λ x hx, hε₁ $ _⟩,
+  rw [mem_set_of_eq, dist_comm, hg],
+  refine hδ₁ ⟨x.1, hsub x.2⟩ _, rw dist_comm, exact hx
 end
 
 /- The intersect of finitely many open sets is open -/
@@ -576,6 +589,10 @@ x₀ = x₁ := dist_zero $ λ ε hε,
   lt_of_le_of_lt (dist_triangle x₀ (s N) x₁) $
 by linarith [hN₀ N (le_max_left _ _), 
   show dist (s N) x₁ < ε / 2, by rw dist_comm; from hN₁ N (le_max_right _ _)]
+
+/- Constants converges to themselves -/
+theorem const_converge (x : X) : (λ n, x) ⇒ x := 
+  λ ε hε, ⟨1, λ n hn, by rw dist_self; exact hε⟩
 
 /- Sequential continuity -/
 theorem seq_contin {x : X} {f : X → Y} (hf : is_continuous f)
