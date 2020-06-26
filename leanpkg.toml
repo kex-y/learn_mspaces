@@ -1,8 +1,8 @@
 [package]
 name = "metric_spaces"
 version = "0.1"
-lean_version = "leanprover-community/lean:3.16.2"
+lean_version = "leanprover-community/lean:3.16.5"
 path = "src"
 
 [dependencies]
-mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "0736c95c61521f5040666d5832d808f71c537ab8"}
+mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "2d270ff1bfc16a26624297850501eb284b2eeaf3"}
