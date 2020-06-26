@@ -16,6 +16,17 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 [... Some stuff that doesn't matter ...]
 -/
 
+/-
+In basic we will prove some simple results regarding metric spaces 
+including theorem about 
+- continuous functions
+- bounded metric spaces 
+- open balls and open sets
+- closed sets
+- closure and interior
+- convergence of sequences
+-/
+
 noncomputable theory
 local attribute [instance] classical.prop_decidable
 
@@ -46,7 +57,8 @@ is_continuous (g ∘ f) := λ a ε hε,
   let ⟨δ₂, hf₁, hf₂⟩ := h₁ a δ₁ hg₁ in
   ⟨δ₂, hf₁, λ x hx, hg₂ (f x) (hf₂ x hx)⟩
 
-/- The product of two metric spaces is also a metric space (very buggy, hence setting the priority to 0) -/
+/- The product of two metric spaces is also a metric space 
+(This messes with the product space defined in mathlib, hence setting the priority to 0) -/
 @[priority 0] instance : metric_space (X × Y) :=
 { dist := λ ⟨x₀, y₀⟩ ⟨x₁, y₁⟩, dist x₀ x₁ + dist y₀ y₁,
   dist_self := λ ⟨x, y⟩, show dist x x + dist y y = 0, by simp,
@@ -405,13 +417,11 @@ begin
   cases classical.em (∃ n, l = a n) with heq hneq,
   cases heq with n hn, cases h n with hS hlS,
   left, exact ((symm hn) ▸ hS), right, exact ((symm hn) ▸ hlS),
-
   push_neg at hneq, cases classical.em (l ∈ S) with _ hlS,
   { left, assumption },
   { right, intros ε hε,
     cases h₁ (ε / 2) (half_pos hε) with n hn, cases h n with hS' hlS',
     exact ⟨a n, hS', hneq n, lt_trans (hn n (le_refl n)) (half_lt_self hε)⟩,
-    
     rcases hlS' (ε / 2) (half_pos hε) with ⟨y, hy₀, hy₁, hy₂⟩,
     refine ⟨y, hy₀, λ heq, hlS $ _, lt_of_le_of_lt (dist_triangle l (a n) y) _⟩,
     { rw heq, exact hy₀ },
@@ -419,10 +429,8 @@ begin
   } 
 end
 
-/-
-By constructing a sequence that converges outside of the limit points with show 
-by contradiction that a set with its limit points is closed
--/
+/- By constructing a sequence that converges outside of the limit points with show 
+by contradiction that a set with its limit points is closed -/
 theorem with_limit_points_is_closed (S : set X) : 
 is_closed' (S ∪ limit_points S) := 
 begin
@@ -443,8 +451,7 @@ begin
     refine lt_trans this _,
     rw (one_div_lt _ hε),
     exact lt_of_lt_of_le hN (by norm_cast; exact le_trans hn (nat.le_succ n)),
-    norm_cast, exact nat.succ_pos n
-  },
+    norm_cast, exact nat.succ_pos n },
   exact hs (limit_in_with_limit_points ha₁ this)
 end
 
@@ -550,7 +557,7 @@ interior' (interior' S) = interior' S:= interior'_self $ interior'_is_open S
 theorem interior''_mono {S T : set X} (h : S ⊆ T) : 
 S⁰ ⊆ (T⁰) := λ x ⟨hx₀, ε, hε₀, hε₁⟩, ⟨h hx₀, ε, hε₀, subset.trans hε₁ h⟩
 
-theorem monotone_interiro'' : monotone $ @interior'' X _ := @interior''_mono X _
+theorem monotone_interior'' : monotone $ @interior'' X _ := @interior''_mono X _
 
 end interior'
 
