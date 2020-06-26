@@ -19,10 +19,12 @@ namespace connected
 inductive type binary containing terms: val_a and val_b -/
 inductive binary : Type* | val_a : binary | val_b : binary
 
-/- We need to show that binary form a metric space -/
+/- We need to show that binary form a metric space so we will define 
+a discrete metric on binary -/
 private def binary_metric : binary → binary → ℝ :=
   λ x y, if (x = y) then 0 else 1
 
+/- We need to prove all the metric axioms -/
 private lemma binary_dist_self : ∀ x, binary_metric x x = 0 :=
 λ x, by unfold binary_metric; simp
 
@@ -31,8 +33,8 @@ private lemma binary_eq_of_dist_eq_zero :
 begin
   cases x; cases y;
   try { refl <|>
-    {	exfalso, apply @zero_ne_one ℝ _, rw ←h,
-      unfold binary_metric, simp } }
+      {	exfalso, apply @zero_ne_one ℝ _, rw ←h,
+        unfold binary_metric, simp } }
 end
 
 private lemma binary_dist_comm : 
@@ -215,7 +217,8 @@ theorem connected_iff_open_and_closed : is_connected' X ↔
   ∀ S : set X, is_open' S ∧ is_closed' S → S = ∅ ∨ S = univ :=
 ⟨λ h, open_and_closed_of_connected h, λ h, connected_of_open_and_closed h⟩
 
-/- Consider what it means for a set to be connected intuitively:
+/- TODO.
+Consider what it means for a set to be connected intuitively:
 if we have a bunch of connected sets and we "connect" them by letting them 
 have some over lap, we expect the resulting set to also be connected.
 
@@ -261,14 +264,14 @@ theorem between_closure_is_connected_of_connected {U : set X}
   (hU : is_connected' U) : ∀ V, U ⊆ V ∧ V ⊆ closure' U → is_connected' V :=
 begin
   rintros V ⟨hV₀, hV₁⟩,
-  rw [connected_iff_const_func] at *,
+  rw connected_iff_const_func at *,
   rw open_closed.closure'.with_limit_points_is_closure U at hV₁,
   intros f hf, let g : U → binary := λ u, f ⟨u.1, hV₀ u.2⟩,
   cases hU g (open_closed.subset_contin_of_contin hV₀ f g hf rfl),
   left, swap, right,
   all_goals { ext, cases hV₁ x.2 with hinU hlp,
     { try { rw [show binary.val_a = g ⟨x.1, hinU⟩, by simp [h]] 
-      <|> rw [show binary.val_b = g ⟨x.1, hinU⟩, by simp [h]] }, 
+        <|> rw [show binary.val_b = g ⟨x.1, hinU⟩, by simp [h]] }, 
       show f x = (λ (u : U), f ⟨u.1, hV₀ u.2⟩) ⟨x.val, hinU⟩, simp },
     { choose s h₀ h₁ h₂ using λ n : ℕ, hlp (1 / (n + 1) : ℝ) nat.one_div_pos_of_nat,
       have ha : (λ n, g $ ⟨s n, h₀ n⟩) ⇒ f x := λ ε' hε', 
