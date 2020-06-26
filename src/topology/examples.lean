@@ -17,7 +17,7 @@ def example_topology : topological_space X :=
       cases hS, rw mem_singleton_iff.1 hS, simp,
       cases hT, rw mem_singleton_iff.1 hT, simp,
       right, rw mem_set_of_eq at *,
-      rw compl_inter, exact finite_union hS hT
+      rw compl_inter, exact finite.union hS hT,
     end,
   is_open_sUnion := λ s hs,
     begin
@@ -34,7 +34,7 @@ def example_topology : topological_space X :=
           right, rw [mem_set_of_eq, compl_sUnion],
           cases hs t ht₀, exfalso, exact ht₁ h, 
           rw mem_set_of_eq at h,
-          refine finite_subset h (sInter_subset_of_mem $ _),
+          refine finite.subset h (sInter_subset_of_mem $ _),
           rw mem_image, exact ⟨t, ht₀, rfl⟩
         }
     end }

@@ -109,17 +109,17 @@ begin
 end
 
 lemma preimage_eq_inv {f : X → Y} {U : set X} (hf : bijective f) : 
-f '' U = (of_bijective hf).inv_fun ⁻¹' U :=
+f '' U = (of_bijective _ hf).inv_fun ⁻¹' U :=
 begin
   ext, split; intro hx,
     { rcases (mem_image _ _ _).1 hx with ⟨y, hy₀, hy₁⟩,
       rw [←hy₁, mem_preimage], 
-      have : left_inverse (of_bijective hf).inv_fun f := 
-        (of_bijective hf).left_inv, 
+      have : left_inverse (of_bijective _ hf).inv_fun f := 
+        (of_bijective _ hf).left_inv, 
       rwa this y },
-    { refine ⟨(of_bijective hf).inv_fun x, hx, _⟩,
-      have : right_inverse (of_bijective hf).inv_fun f := 
-        (of_bijective hf).right_inv,
+    { refine ⟨(of_bijective _ hf).inv_fun x, hx, _⟩,
+      have : right_inverse (of_bijective _ hf).inv_fun f := 
+        (of_bijective _ hf).right_inv,
       rwa this x
     }
 end
@@ -129,7 +129,7 @@ noncomputable theorem equiv_of_topo_contin_biject {f : X → Y}
 (hf₂ : is_continuous f) : X ≃* Y :=
 { contin := hf₂,
   inv_contin := λ U hU, by rw ←preimage_eq_inv hf₀; exact hf₁ U hU,
-  .. of_bijective hf₀ }
+  .. of_bijective _ hf₀ }
 
 end mapping
 
