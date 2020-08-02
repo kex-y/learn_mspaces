@@ -19,6 +19,9 @@ namespace connected
 inductive type binary containing terms: val_a and val_b -/
 inductive binary : Type* | val_a : binary | val_b : binary
 
+lemma binary_cases (y : binary) : y = binary.val_a ∨ y = binary.val_b :=
+by cases y; finish
+
 /- We need to show that binary form a metric space so we will define 
 a discrete metric on binary -/
 private def binary_metric : binary → binary → ℝ :=
@@ -216,24 +219,6 @@ end
 theorem connected_iff_open_and_closed : is_connected' X ↔ 
   ∀ S : set X, is_open' S ∧ is_closed' S → S = ∅ ∨ S = univ :=
 ⟨λ h, open_and_closed_of_connected h, λ h, connected_of_open_and_closed h⟩
-
-/- TODO.
-Consider what it means for a set to be connected intuitively:
-if we have a bunch of connected sets and we "connect" them by letting them 
-have some over lap, we expect the resulting set to also be connected.
-
-Written out mathematically, given {S i : i ∈ I} a collection of connected sets 
-of X such that ⋂ (i ∈ I), S i ≠ ∅, ⋃ (i ∈ I), S i is connected.
-
-(This is going to be difficult to prove in Lean since we'll have to work with 
-subspaces :/ ) 
-theorem Union_of_ndisj_connected {α} 
-  {U : α → set X} (hc : ∀ i, is_connected' $ U i) 
-  (hndisj : (⋂ i, U i) ≠ ∅) : is_connected' $ ⋃ i, U i :=
-begin
-  rw connected_iff_const_func,
-  intros f hf, sorry
-end -/
 
 lemma image_factorization_contin {U : set X} {f : X → Y} 
   (hf : is_continuous f) : is_continuous $ image_factorization f U :=
