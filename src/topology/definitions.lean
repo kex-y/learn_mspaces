@@ -51,7 +51,22 @@ instance {A : set X} : has_coe (set A) (set X) :=
 space with the subspace topology -/
 instance {A : set X} : topological_space A := 
 { is_open := λ U, ∃ (V : set X) (H : is_open V), A ∩ V = U,
-  is_open_univ := sorry,
+  is_open_univ := 
+    begin
+      refine ⟨univ, is_open_univ, _⟩,
+      rw [univ_subtype, inter_univ],
+      ext, split; intro ha,
+      have : (⟨x, ha⟩ : A) ∈ ⋃ (x : X) (h : x ∈ A), ({⟨x, h⟩} : set A),
+        finish,
+      refine ⟨_, this, rfl⟩,
+      rcases ha with ⟨x, hx, rfl⟩,
+      rw mem_Union at hx,
+      cases hx with i hi,
+      rw mem_Union at hi,
+      cases hi with ha hx,
+      rw mem_singleton_iff at hx,
+      rw hx, exact ha,
+    end,
   is_open_inter := sorry,
   is_open_sUnion := sorry }
 

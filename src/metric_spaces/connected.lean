@@ -163,8 +163,7 @@ begin
     { exact mem_univ _ },
     { suffices : f x = binary.val_a ∨ f x = binary.val_b,
         cases this, left, exact this, right, exact this,
-      cases f x; finish
-    }  
+      cases f x; finish }  
 end
 
 theorem connected_iff_const_func : is_connected' X ↔ ∀ f : X → binary, 

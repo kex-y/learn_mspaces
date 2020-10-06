@@ -137,8 +137,9 @@ lemma comp_map_prod (f : X → Y) (g : X → Y') :
 by ext; all_goals {simp, refl}
 
 /- Using the diagonal map, we can show given continuous functions f g, x → (f x, g x) is continous-/
-theorem map_prod_continous (f : X → Y) (g : X → Y') (h₁ : is_continuous f) (h₂ : is_continuous g) :
-is_continuous (λ x : X, (f x, g x)) :=
+theorem map_prod_continous (f : X → Y) (g : X → Y') 
+  (h₁ : is_continuous f) (h₂ : is_continuous g) :
+  is_continuous (λ x : X, (f x, g x)) :=
 begin
   rw comp_map_prod, refine comp_continuous diagonal_map_is_continuous _,
   apply prod_continuous, repeat {assumption}
@@ -156,8 +157,7 @@ or.elim h₀
   (λ h₀, let ⟨x₀, hx₀, K, hK⟩ := h₀ in
   ⟨K + K, λ s hs,
     by linarith [dist_triangle s₀ x₀ s, hK s₀ hs₀, 
-    (show dist x₀ s ≤ K, by rw dist_comm; from hK s hs)]⟩
-  )
+    (show dist x₀ s ≤ K, by rw dist_comm; from hK s hs)]⟩)
 
 /- Reverse of the above -/
 lemma all_bounded {S : set X} (h₀ : ∀ s₀ ∈ S, ∃ K : ℝ, ∀ s ∈ S, dist s₀ s ≤ K) : 
@@ -165,8 +165,7 @@ is_bounded S :=
 or.elim (eq_empty_or_nonempty S)
   (λ hs, or.inl $ hs)
   (λ hs, or.inr $ let ⟨s', hs'⟩ := hs in
-  ⟨s', hs', let ⟨K, hK⟩ := h₀ s' hs' in ⟨K, by simp [dist_comm]; from hK⟩⟩
-  )
+  ⟨s', hs', let ⟨K, hK⟩ := h₀ s' hs' in ⟨K, by simp [dist_comm]; from hK⟩⟩)
 
 /- If S is bounded if and only if ∀ s₀ ∈ S, ∃ K : ℝ, ∀ s ∈ S, dist s₀ s ≤ K -/
 theorem bounded_iff_all {S : set X} : 
@@ -212,7 +211,8 @@ theorem subset_open_ball (x₀ : X) (r : ℝ) :
   ⟩
 
 /- An open ball is open -/
-theorem open_ball_is_open (x₀ : X) (r : ℝ) (h : 0 < r) : is_open' $ open_ball x₀ r := subset_open_ball x₀ r
+theorem open_ball_is_open (x₀ : X) (r : ℝ) (h : 0 < r) : 
+  is_open' $ open_ball x₀ r := subset_open_ball x₀ r
 
 /- An open ball has non-positive radius then its empty -/
 lemma nonpos_empty {x₀ : X} {r : ℝ} (h₁ : r ≤ 0) : 
@@ -220,9 +220,9 @@ open_ball x₀ r = ∅ :=
 begin
   ext, split, 
     { intro hx, rw mem_set_of_eq at hx,
-    exfalso, apply (not_le.mpr hx), apply le_trans h₁, 
-    from metric_nonneg x₀ x },
-    intro hx, exfalso, from hx
+      exfalso, apply (not_le.mpr hx), apply le_trans h₁, 
+      from metric_nonneg x₀ x },
+    { intro hx, exfalso, from hx }
 end
 
 /- An open ball either has positive radius or its empty -/
@@ -611,6 +611,30 @@ begin
   simp only [],
   rw dist_comm, refine hδ₁ _ _,
   rw dist_comm, refine hN _ hn
+end
+
+theorem seq_contin' {x : X} {f : X → Y} 
+  (hf : ∀ s : ℕ → X, s ⇒ x → (λ n, f (s n)) ⇒ f x) : 
+  is_continuous_at f x := 
+begin
+  unfold is_continuous_at,
+  by_contra h, push_neg at h,
+  rcases h with ⟨ε, hε, h⟩,
+  choose s hs using λ n : ℕ, h (1 / (n + 1) : ℝ) nat.one_div_pos_of_nat,
+  have : s ⇒ x,
+    { intros δ hδ,
+      rcases exists_nat_gt (1 / δ) with ⟨N, hN'⟩,
+      refine ⟨N, λ n hn, _⟩,
+      rw dist_comm,
+      apply lt_trans (hs n).1 ((one_div_lt _ hδ).2 _),
+      exact nat.cast_add_one_pos n,
+      apply lt_trans hN', norm_cast, 
+      exact nat.lt_succ_iff.mpr hn },
+  specialize hf s this,
+  suffices : ¬ ((λ (n : ℕ), f (s n)) ⇒ f x), contradiction,
+  unfold converge_to, push_neg,
+  refine ⟨ε, hε, λ N, ⟨N, le_refl _, _⟩⟩,
+  rw dist_comm, exact (hs N).2
 end
 
 end convergence
