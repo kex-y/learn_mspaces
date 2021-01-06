@@ -227,7 +227,7 @@ end
 
 /- An open ball either has positive radius or its empty -/
 lemma pos_or_empty (x₀ : X) (r : ℝ) : open_ball x₀ r = ∅ ∨ 0 < r :=
-by apply classical.or_iff_not_imp_right.mpr; from λ h, nonpos_empty $ not_lt.mp h
+or_iff_not_imp_left.2 (by rw ← not_le; exact mt nonpos_empty)
 
 /- An empty set is open -/
 theorem empty_is_open : is_open' (∅ : set X) := λ s hs, by exfalso; from hs
@@ -244,7 +244,8 @@ is_open' $ preimage f U := λ x hx,
     by apply hε₂; rw [mem_set_of_eq, dist_comm]; apply hδ₂ x'; rw dist_comm; assumption⟩
 
 lemma preimg_open_to_contin : 
-(∀ (U : set Y) (h₀ : is_open' U), is_open' $ preimage f U) → is_continuous f := λ h x ε hε,
+  (∀ (U : set Y) (h₀ : is_open' U), is_open' $ preimage f U) → is_continuous f := 
+λ h x ε hε,
   let U := open_ball (f x) ε in have hinU : f x ∈ U := by simp; from hε,
   let ⟨δ, hδ₀, hδ₁⟩ := h U (open_ball_is_open (f x) ε hε) x hinU in
   ⟨δ, hδ₀, λ y hy,
@@ -255,7 +256,7 @@ lemma preimg_open_to_contin :
   ⟩
 
 theorem contin_iff_preimg_open :
-(∀ (U : set Y) (h₀ : is_open' U), is_open' $ preimage f U) ↔ is_continuous f :=
+  (∀ (U : set Y) (h₀ : is_open' U), is_open' $ preimage f U) ↔ is_continuous f :=
 iff.intro
   (preimg_open_to_contin)
   (λ hcontin U hopen, contin_to_preimg_open U hopen hcontin)
@@ -392,7 +393,7 @@ begin
   apply classical.by_contradiction, intro hnT,
   rcases hT x hnT with ⟨ε, hε₀, hε₁⟩,
   rcases hx ε hε₀ with ⟨y, hy₀, hy₁, hy₂⟩,
-  have : y ∈ -T, apply hε₁, assumption,
+  have : y ∈ Tᶜ, apply hε₁, assumption,
   have : y ∈ T, apply hS, assumption,
   contradiction
 end

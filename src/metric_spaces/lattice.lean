@@ -1,4 +1,4 @@
-import metric_spaces.theorems
+import metric_spaces.basic
 
 /--
 In this file we showed that the `closed_set` form a Galois insertion with

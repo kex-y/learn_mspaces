@@ -172,7 +172,7 @@ theorem connected_iff_const_func : is_connected' X ↔ ∀ f : X → binary,
 
 /- Furthermore, X is connected is equivalent to the only open sets in X are 
 univ and ∅ -/
-lemma compl_nempty_of_not_univ {S : set X} : ¬S = univ → -S ≠ ∅ := 
+lemma compl_nempty_of_not_univ {S : set X} : ¬S = univ → Sᶜ ≠ ∅ := 
 λ h hn, h $ by rw ← compl_univ at hn; exact compl_inj_iff.mp hn
 
 lemma eq_union_sub {S T : set X} (h : S = S ∪ T) : T ⊆ S := 
@@ -182,7 +182,7 @@ lemma sub_disj_eq_empty {S T : set X} (h : T ⊆ S) (hinter : S ∩ T = ∅) : T
 by rw ←hinter; ext; exact ⟨λ hx, ⟨h hx, hx⟩, λ hx, hx.2 ⟩
 
 lemma compl_eq_disj_cover {S T : set X} 
-(hinter : S ∩ T = ∅) (hcover : S ∪ T = univ) : -S = T :=
+(hinter : S ∩ T = ∅) (hcover : S ∪ T = univ) : Sᶜ = T :=
 begin
   ext, split; intro hx,
     { have := mem_univ x, 
@@ -199,7 +199,7 @@ begin
   cases hS with hS₀ hS₁,
   by_contra hp, push_neg at hp, apply h,
   cases notempty hp.1 with x hx,
-  exact ⟨S, -S, hS₀, hS₁, hp.1, compl_nempty_of_not_univ hp.2, by finish⟩
+  exact ⟨S, Sᶜ, hS₀, hS₁, hp.1, compl_nempty_of_not_univ hp.2, by finish⟩
 end
 
 lemma connected_of_open_and_closed 
@@ -264,12 +264,13 @@ begin
             refine ⟨N, λ n hn, _⟩, rw dist_comm,
             refine hδ₁ ⟨s n, _⟩ (lt_trans _ ((one_div_lt _ hδ₀).2 hN)),
             rw dist_comm, refine lt_of_lt_of_le (h₂ n) _, 
-            rw [one_div_eq_inv, one_div_eq_inv, inv_le, inv_inv'], 
+            rw [one_div_le, one_div_one_div],
             norm_cast, exact le_add_right hn, 
             norm_cast, exact nat.succ_pos n, 
-            rw inv_pos, all_goals 
+            
+            rw one_div_pos, all_goals 
               { refine lt_trans (inv_pos.2 hδ₀) _, 
-              rw ←one_div_eq_inv, exact hN } },
+                rw inv_eq_one_div, exact hN } },
       refine convergence.limit_unique _ _ ha _,
       rw h, simp [convergence.const_converge] } }
 end

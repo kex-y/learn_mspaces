@@ -166,7 +166,7 @@ closure U ⊆ limit_points U :=
 lemma limit_points_le_closure (U : set X) :
 limit_points U ⊆ closure U := λ x hx U' hU',
 classical.by_contradiction $ λ hf,
-  let ⟨y, hy⟩ := ne_empty_iff_nonempty.1 (hx (- U') (hU'.1) hf) in
+  let ⟨y, hy⟩ := ne_empty_iff_nonempty.1 (hx (U'ᶜ) (hU'.1) hf) in
 not_subset.2 ⟨y, hy.2, hy.1⟩ hU'.2
 
 theorem closure_eq_limit_points (U : set X) : 
@@ -214,7 +214,7 @@ interior U = interior_points U := ext $ λ x,
 
 /- The closure of -U equals the complement of the interior of U -/
 theorem closure_compl_eq_compl_interior {U : set X} :
-closure (-U) = - interior U := 
+closure Uᶜ = (interior U)ᶜ := 
 begin
   ext, split; rw [closure_eq_limit_points, interior_eq_interior_points],
     { intros hx₀ hx₁,
@@ -225,14 +225,14 @@ begin
 end
 
 theorem interior_eq_compl_closure_compl {U : set X} :
-interior U = - closure (-U) := by simp [closure_compl_eq_compl_interior]
+interior U = (closure Uᶜ)ᶜ := by simp [closure_compl_eq_compl_interior]
 
 /- With the above theorem in place, we can straightaway analougous theorems 
 to the ones we've proved for closure -/
 
 /- The interior of a set is smaller than the set -/
 theorem interior_le_set (U : set X) : interior U ⊆ U := 
-by rw [interior_eq_compl_closure_compl, compl_subset_comm]; exact set_le_closure (-U)
+by rw [interior_eq_compl_closure_compl, compl_subset_comm]; exact set_le_closure Uᶜ
 
 /- If A ⊆ B, then the interior of A ⊆ interior of B -/
 theorem interior_mono {U V : set X} (hle : U ⊆ V) : 
@@ -248,7 +248,7 @@ theorem interior_of_open {U : set X} (h : is_open U) :
 interior U = U := 
 begin
   rw interior_eq_compl_closure_compl,
-  suffices : closure (-U) = -U, simp [this],
+  suffices : closure Uᶜ = Uᶜ, simp [this],
   exact closure_of_closed (by simp [compl_compl, h])
 end
 
@@ -284,7 +284,7 @@ lemma contin_of_preimage_closed_of_closed
 (h : ∀ V, is_closed V → is_closed (f ⁻¹' V)) : is_continuous f :=
 begin
   intros U hU,
-  suffices : is_closed (- (f ⁻¹' U)),
+  suffices : is_closed (f ⁻¹' U)ᶜ,
     { unfold is_closed at this, rwa compl_compl at this },
   rw ←preimage_compl,
   refine h _ _, unfold is_closed, rwa compl_compl
@@ -348,13 +348,12 @@ begin
     { rw mem_preimage at *,
       replace hx : ↑(f x) ∈ V, exact hx,
       have : ↑(f x) ∈ ↑U,
-        rw ←hV₁, exact mem_inter (subtype.val_prop' _) hx,
+        rw ←hV₁, exact mem_inter (subtype.coe_prop _) hx,
       cases f x with fx₀ _,
       rcases this with ⟨y, hy₀, hy₁⟩, 
       convert hy₀, cases y, 
       suffices : fx₀ = y_val, simp only [subtype.mk_eq_mk], assumption,
-      simp only [subtype.coe_mk] at hy₁, rw hy₁
-    }
+      simp only [subtype.coe_mk] at hy₁, rw hy₁ }
 end
 
 theorem is_contin_iff_comp_inclusion_is_contin {A : set X} {f : Z → A} :

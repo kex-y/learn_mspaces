@@ -9,7 +9,7 @@ namespace examples
 
 -- The cofinite topology
 def example_topology : topological_space X := 
-{ is_open := λ U, U ∈ {∅} ∪ {U' : set X | finite (-U')},
+{ is_open := λ U, U ∈ {∅} ∪ {U' : set X | finite U'ᶜ},
   is_open_univ := 
     by right; rw mem_set_of_eq; convert finite_empty; exact compl_top,
   is_open_inter := λ _ _ hS hT,

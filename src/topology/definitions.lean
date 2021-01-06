@@ -67,8 +67,19 @@ instance {A : set X} : topological_space A :=
       rw mem_singleton_iff at hx,
       rw hx, exact ha,
     end,
-  is_open_inter := sorry,
-  is_open_sUnion := sorry }
+  is_open_inter := 
+    begin
+      rintro s t ⟨Vₛ, hs, hcaps⟩ ⟨Vₜ, ht, hcapt⟩,
+      refine ⟨Vₛ ∩ Vₜ, is_open_inter hs ht, _⟩,
+      rw [show (((s ∩ t : set A) : set X) = (s : set X) ∩ t), 
+        by {ext, split; tidy}, ← hcaps, ← hcapt], 
+      ext, split; tidy,
+    end,
+  is_open_sUnion := 
+    begin
+      rintro s hs,
+      sorry
+    end }
 
 /- We define the natural mapping between a subspace to the whole space
 (inclusion map) -/

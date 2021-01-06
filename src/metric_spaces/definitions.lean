@@ -26,7 +26,7 @@ def open_ball (x₀ : X) (r : ℝ) := {x : X | dist x₀ x < r}
 def is_open' (S : set X) := ∀ s ∈ S, ∃ (ε : ℝ) (hε : 0 < ε), open_ball s ε ⊆ S
 
 /- Definition of being closed -/
-def is_closed' (S : set X) := is_open' $ -S
+def is_closed' (S : set X) := is_open' $ Sᶜ 
 
 /- Definition of the set of limit points -/
 def limit_points (S : set X) := 
